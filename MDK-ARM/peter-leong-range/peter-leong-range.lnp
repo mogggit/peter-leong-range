@@ -1,0 +1,28 @@
+--cpu=Cortex-M4.fp.sp
+"peter-leong-range\startup_stm32f446xx.o"
+"peter-leong-range\main.o"
+"peter-leong-range\stm32f4xx_it.o"
+"peter-leong-range\stm32f4xx_hal_msp.o"
+"peter-leong-range\stm32f4xx_hal_spi.o"
+"peter-leong-range\stm32f4xx_hal_rcc.o"
+"peter-leong-range\stm32f4xx_hal_rcc_ex.o"
+"peter-leong-range\stm32f4xx_hal_flash.o"
+"peter-leong-range\stm32f4xx_hal_flash_ex.o"
+"peter-leong-range\stm32f4xx_hal_flash_ramfunc.o"
+"peter-leong-range\stm32f4xx_hal_gpio.o"
+"peter-leong-range\stm32f4xx_hal_dma_ex.o"
+"peter-leong-range\stm32f4xx_hal_dma.o"
+"peter-leong-range\stm32f4xx_hal_pwr.o"
+"peter-leong-range\stm32f4xx_hal_pwr_ex.o"
+"peter-leong-range\stm32f4xx_hal_cortex.o"
+"peter-leong-range\stm32f4xx_hal.o"
+"peter-leong-range\stm32f4xx_hal_exti.o"
+"peter-leong-range\stm32f4xx_hal_uart.o"
+"peter-leong-range\stm32f4xx_hal_pcd.o"
+"peter-leong-range\stm32f4xx_hal_pcd_ex.o"
+"peter-leong-range\stm32f4xx_ll_usb.o"
+"peter-leong-range\system_stm32f4xx.o"
+--strict --scatter "peter-leong-range\peter-leong-range.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "peter-leong-range.map" -o peter-leong-range\peter-leong-range.axf
