@@ -11,7 +11,8 @@ Mode: Full-Duplex Master<br>
 | MISO | PA_6 | SPI1_MISO |
 | MOSI | PA_7 | SPI1_MOSI |
 | CS | PA_4 | SPI1_NSS |
-| G0 | PF_12 | GPIO_EXTI14 |
+| G0 | PF_12 | GPIO_EXTI12 |
+| RST | PB_4 | RESET_GPIO_Port |
 
 
 ## References
