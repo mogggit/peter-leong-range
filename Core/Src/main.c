@@ -72,12 +72,13 @@ void print_msg(char *msg) {
 	HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), 100);
 }
 
+LoRa myLoRa;
 void setup() {
 		
 	sprintf(message, "Starting\n");
 	print_msg(message);
 	// SX1276 compatible module connected to SPI1, NSS pin connected to GPIO with label LORA_NSS
-	LoRa myLoRa = newLoRa();
+	myLoRa = newLoRa();
 	
 	myLoRa.CS_port         = LoRa_NSS_GPIO_Port;
 	myLoRa.CS_pin          = LoRa_NSS_Pin;
@@ -150,10 +151,22 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	uint8_t received_data[10];
+	uint8_t packet_size = 0;
   while (1)
   {
     /* USER CODE END WHILE */
-
+		sprintf(message, "Receiving...\n");
+		print_msg(message);
+		packet_size = LoRa_receive(&myLoRa, received_data, 10);
+		
+		sprintf(message, "Received data: \n");
+		print_msg(message);
+		for (int i=0; i<10; i++) {
+			sprintf(message, "%d ", received_data[i]);
+			print_msg(message);
+		}
+		HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
