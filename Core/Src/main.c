@@ -90,11 +90,11 @@ void setup() {
 
 	myLoRa.frequency             = 915;             // default = 433 MHz
 	myLoRa.spredingFactor        = SF_7;            // default = SF_7
-	myLoRa.bandWidth             = BW_250KHz;       // default = BW_125KHz
-	myLoRa.crcRate               = CR_4_8;          // default = CR_4_5
+	myLoRa.bandWidth             = BW_125KHz;       // default = BW_125KHz
+	myLoRa.crcRate               = CR_4_5;          // default = CR_4_5
 	myLoRa.power                 = POWER_17db;      // default = 20db
 	myLoRa.overCurrentProtection = 130;             // default = 100 mA
-	myLoRa.preamble              = 10;              // default = 8;
+	myLoRa.preamble              = 8;              // default = 8;
 
 	if(LoRa_init(&myLoRa) == LORA_OK){
 		sprintf(message, "LoRa Ready\r\n");
@@ -156,11 +156,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-		sprintf(message, "Receiving...\n");
-		print_msg(message);
 		packet_size = LoRa_receive(&myLoRa, received_data, 10);
 		
-		sprintf(message, "Received data: \n");
+		sprintf(message, "\n Received data:");
 		print_msg(message);
 		for (int i=0; i<10; i++) {
 			sprintf(message, "%d ", received_data[i]);

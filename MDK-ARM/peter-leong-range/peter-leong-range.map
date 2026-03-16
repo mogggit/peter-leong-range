@@ -150,10 +150,10 @@ Section Cross References
     main.o(.text.main) refers to stm32f4xx_hal_pcd.o(.text.HAL_PCD_Init) for HAL_PCD_Init
     main.o(.text.main) refers to main.o(.text.setup) for setup
     main.o(.text.main) refers to main.o(.bss.message) for message
-    main.o(.text.main) refers to main.o(.rodata.str1.1) for .L.str.5
+    main.o(.text.main) refers to main.o(.rodata.str1.1) for .L.str.4
+    main.o(.text.main) refers to lora.o(.text.LoRa_receive) for LoRa_receive
     main.o(.text.main) refers to strlen.o(.text) for strlen
     main.o(.text.main) refers to stm32f4xx_hal_uart.o(.text.HAL_UART_Transmit) for HAL_UART_Transmit
-    main.o(.text.main) refers to lora.o(.text.LoRa_receive) for LoRa_receive
     main.o(.text.main) refers to noretval__2sprintf.o(.text) for __2sprintf
     main.o(.text.main) refers to stm32f4xx_hal.o(.text.HAL_Delay) for HAL_Delay
     main.o(.ARM.exidx.text.main) refers (Special) to _printf_percent.o(.ARM.Collect$$_printf_percent$$00000000) for _printf_percent
@@ -1095,7 +1095,7 @@ Removing Unused input sections from the image.
     Removing main.o(.ARM.exidx.text.main), (8 bytes).
     Removing main.o(.ARM.exidx.text.SystemClock_Config), (8 bytes).
     Removing main.o(.ARM.exidx.text.Error_Handler), (8 bytes).
-    Removing main.o(.rodata.str1.4), (42 bytes).
+    Removing main.o(.rodata.str1.4), (25 bytes).
     Removing main.o(.ARM.use_no_argv), (4 bytes).
     Removing stm32f4xx_it.o(.text), (0 bytes).
     Removing stm32f4xx_it.o(.ARM.exidx.text.NMI_Handler), (8 bytes).
@@ -1827,7 +1827,7 @@ Removing Unused input sections from the image.
     Removing system_stm32f4xx.o(.text.SystemCoreClockUpdate), (134 bytes).
     Removing system_stm32f4xx.o(.ARM.exidx.text.SystemCoreClockUpdate), (8 bytes).
 
-776 unused section(s) (total 44858 bytes) removed from the image.
+776 unused section(s) (total 44841 bytes) removed from the image.
 
 ==============================================================================
 
@@ -2074,25 +2074,25 @@ Image Symbol Table
     [Anonymous Symbol]                       0x080034a4   Section        0  stm32f4xx_ll_usb.o(.text.USB_SetCurrentMode)
     [Anonymous Symbol]                       0x0800380c   Section        0  stm32f4xx_it.o(.text.UsageFault_Handler)
     [Anonymous Symbol]                       0x08003810   Section        0  main.o(.text.main)
-    [Anonymous Symbol]                       0x08003be8   Section        0  lora.o(.text.newLoRa)
-    [Anonymous Symbol]                       0x08003c04   Section        0  main.o(.text.setup)
-    $v0                                      0x08003d44   Number         0  ddiv.o(x$fpl$ddiv)
-    x$fpl$ddiv                               0x08003d44   Section      696  ddiv.o(x$fpl$ddiv)
-    ddiv_entry                               0x08003d4b   Thumb Code     0  ddiv.o(x$fpl$ddiv)
-    $v0                                      0x08003ffc   Number         0  dfix.o(x$fpl$dfix)
-    x$fpl$dfix                               0x08003ffc   Section       94  dfix.o(x$fpl$dfix)
-    $v0                                      0x0800405a   Number         0  dflt_clz.o(x$fpl$dflt)
-    x$fpl$dflt                               0x0800405a   Section       46  dflt_clz.o(x$fpl$dflt)
-    $v0                                      0x08004088   Number         0  dnaninf.o(x$fpl$dnaninf)
-    x$fpl$dnaninf                            0x08004088   Section      156  dnaninf.o(x$fpl$dnaninf)
-    $v0                                      0x08004124   Number         0  dretinf.o(x$fpl$dretinf)
-    x$fpl$dretinf                            0x08004124   Section       12  dretinf.o(x$fpl$dretinf)
-    $v0                                      0x08004130   Number         0  fpinit.o(x$fpl$fpinit)
-    x$fpl$fpinit                             0x08004130   Section       26  fpinit.o(x$fpl$fpinit)
-    x$fpl$usenofp                            0x0800414a   Section        0  usenofp.o(x$fpl$usenofp)
-    .L__const.LoRa_setAutoLDO.BW             0x08004150   Data          80  lora.o(.rodata..L__const.LoRa_setAutoLDO.BW)
-    .L.str.5                                 0x080041b8   Data           4  main.o(.rodata.str1.1)
-    [Anonymous Symbol]                       0x080041b8   Section        0  main.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x08003bac   Section        0  lora.o(.text.newLoRa)
+    [Anonymous Symbol]                       0x08003bc8   Section        0  main.o(.text.setup)
+    $v0                                      0x08003d08   Number         0  ddiv.o(x$fpl$ddiv)
+    x$fpl$ddiv                               0x08003d08   Section      696  ddiv.o(x$fpl$ddiv)
+    ddiv_entry                               0x08003d0f   Thumb Code     0  ddiv.o(x$fpl$ddiv)
+    $v0                                      0x08003fc0   Number         0  dfix.o(x$fpl$dfix)
+    x$fpl$dfix                               0x08003fc0   Section       94  dfix.o(x$fpl$dfix)
+    $v0                                      0x0800401e   Number         0  dflt_clz.o(x$fpl$dflt)
+    x$fpl$dflt                               0x0800401e   Section       46  dflt_clz.o(x$fpl$dflt)
+    $v0                                      0x0800404c   Number         0  dnaninf.o(x$fpl$dnaninf)
+    x$fpl$dnaninf                            0x0800404c   Section      156  dnaninf.o(x$fpl$dnaninf)
+    $v0                                      0x080040e8   Number         0  dretinf.o(x$fpl$dretinf)
+    x$fpl$dretinf                            0x080040e8   Section       12  dretinf.o(x$fpl$dretinf)
+    $v0                                      0x080040f4   Number         0  fpinit.o(x$fpl$fpinit)
+    x$fpl$fpinit                             0x080040f4   Section       26  fpinit.o(x$fpl$fpinit)
+    x$fpl$usenofp                            0x0800410e   Section        0  usenofp.o(x$fpl$usenofp)
+    .L__const.LoRa_setAutoLDO.BW             0x08004110   Data          80  lora.o(.rodata..L__const.LoRa_setAutoLDO.BW)
+    .L.str.4                                 0x08004178   Data           4  main.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x08004178   Section        0  main.o(.rodata.str1.1)
     .L_MergedGlobals                         0x20000000   Data           8  stm32f4xx_hal.o(.data..L_MergedGlobals)
     [Anonymous Symbol]                       0x20000000   Section        0  stm32f4xx_hal.o(.data..L_MergedGlobals)
     .bss                                     0x20000010   Section       96  libspace.o(.bss)
@@ -2366,25 +2366,25 @@ Image Symbol Table
     USB_DisableGlobalInt                     0x08003495   Thumb Code    14  stm32f4xx_ll_usb.o(.text.USB_DisableGlobalInt)
     USB_SetCurrentMode                       0x080034a5   Thumb Code   872  stm32f4xx_ll_usb.o(.text.USB_SetCurrentMode)
     UsageFault_Handler                       0x0800380d   Thumb Code     2  stm32f4xx_it.o(.text.UsageFault_Handler)
-    main                                     0x08003811   Thumb Code   964  main.o(.text.main)
-    newLoRa                                  0x08003be9   Thumb Code    28  lora.o(.text.newLoRa)
-    setup                                    0x08003c05   Thumb Code   292  main.o(.text.setup)
-    __aeabi_ddiv                             0x08003d45   Thumb Code     0  ddiv.o(x$fpl$ddiv)
-    _ddiv                                    0x08003d45   Thumb Code   560  ddiv.o(x$fpl$ddiv)
-    __aeabi_d2iz                             0x08003ffd   Thumb Code     0  dfix.o(x$fpl$dfix)
-    _dfix                                    0x08003ffd   Thumb Code    94  dfix.o(x$fpl$dfix)
-    __aeabi_i2d                              0x0800405b   Thumb Code     0  dflt_clz.o(x$fpl$dflt)
-    _dflt                                    0x0800405b   Thumb Code    46  dflt_clz.o(x$fpl$dflt)
-    __fpl_dnaninf                            0x08004089   Thumb Code   156  dnaninf.o(x$fpl$dnaninf)
-    __fpl_dretinf                            0x08004125   Thumb Code    12  dretinf.o(x$fpl$dretinf)
-    _fp_init                                 0x08004131   Thumb Code    26  fpinit.o(x$fpl$fpinit)
-    __fplib_config_fpu_vfp                   0x08004149   Thumb Code     0  fpinit.o(x$fpl$fpinit)
-    __fplib_config_pureend_doubles           0x08004149   Thumb Code     0  fpinit.o(x$fpl$fpinit)
-    __I$use$fp                               0x0800414a   Number         0  usenofp.o(x$fpl$usenofp)
-    AHBPrescTable                            0x080041a0   Data          16  system_stm32f4xx.o(.rodata.AHBPrescTable)
-    APBPrescTable                            0x080041b0   Data           8  system_stm32f4xx.o(.rodata.APBPrescTable)
-    Region$$Table$$Base                      0x080041bc   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x080041dc   Number         0  anon$$obj.o(Region$$Table)
+    main                                     0x08003811   Thumb Code   904  main.o(.text.main)
+    newLoRa                                  0x08003bad   Thumb Code    28  lora.o(.text.newLoRa)
+    setup                                    0x08003bc9   Thumb Code   292  main.o(.text.setup)
+    __aeabi_ddiv                             0x08003d09   Thumb Code     0  ddiv.o(x$fpl$ddiv)
+    _ddiv                                    0x08003d09   Thumb Code   560  ddiv.o(x$fpl$ddiv)
+    __aeabi_d2iz                             0x08003fc1   Thumb Code     0  dfix.o(x$fpl$dfix)
+    _dfix                                    0x08003fc1   Thumb Code    94  dfix.o(x$fpl$dfix)
+    __aeabi_i2d                              0x0800401f   Thumb Code     0  dflt_clz.o(x$fpl$dflt)
+    _dflt                                    0x0800401f   Thumb Code    46  dflt_clz.o(x$fpl$dflt)
+    __fpl_dnaninf                            0x0800404d   Thumb Code   156  dnaninf.o(x$fpl$dnaninf)
+    __fpl_dretinf                            0x080040e9   Thumb Code    12  dretinf.o(x$fpl$dretinf)
+    _fp_init                                 0x080040f5   Thumb Code    26  fpinit.o(x$fpl$fpinit)
+    __fplib_config_fpu_vfp                   0x0800410d   Thumb Code     0  fpinit.o(x$fpl$fpinit)
+    __fplib_config_pureend_doubles           0x0800410d   Thumb Code     0  fpinit.o(x$fpl$fpinit)
+    __I$use$fp                               0x0800410e   Number         0  usenofp.o(x$fpl$usenofp)
+    AHBPrescTable                            0x08004160   Data          16  system_stm32f4xx.o(.rodata.AHBPrescTable)
+    APBPrescTable                            0x08004170   Data           8  system_stm32f4xx.o(.rodata.APBPrescTable)
+    Region$$Table$$Base                      0x0800417c   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x0800419c   Number         0  anon$$obj.o(Region$$Table)
     uwTickFreq                               0x20000000   Data           1  stm32f4xx_hal.o(.data..L_MergedGlobals)
     uwTickPrio                               0x20000004   Data           4  stm32f4xx_hal.o(.data..L_MergedGlobals)
     SystemCoreClock                          0x20000008   Data           4  system_stm32f4xx.o(.data.SystemCoreClock)
@@ -2405,9 +2405,9 @@ Memory Map of the image
 
   Image Entry point : 0x080001c5
 
-  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x000041f0, Max: 0x00080000, ABSOLUTE)
+  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x000041b0, Max: 0x00080000, ABSOLUTE)
 
-    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x000041dc, Max: 0x00080000, ABSOLUTE)
+    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x0000419c, Max: 0x00080000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -2569,31 +2569,31 @@ Memory Map of the image
     0x080034a4   0x080034a4   0x00000368   Code   RO          903    .text.USB_SetCurrentMode  stm32f4xx_ll_usb.o
     0x0800380c   0x0800380c   0x00000002   Code   RO           97    .text.UsageFault_Handler  stm32f4xx_it.o
     0x0800380e   0x0800380e   0x00000002   PAD
-    0x08003810   0x08003810   0x000003d8   Code   RO           68    .text.main          main.o
-    0x08003be8   0x08003be8   0x0000001c   Code   RO           11    .text.newLoRa       lora.o
-    0x08003c04   0x08003c04   0x00000140   Code   RO           66    .text.setup         main.o
-    0x08003d44   0x08003d44   0x000002b8   Code   RO         1058    x$fpl$ddiv          fz_wm.l(ddiv.o)
-    0x08003ffc   0x08003ffc   0x0000005e   Code   RO         1061    x$fpl$dfix          fz_wm.l(dfix.o)
-    0x0800405a   0x0800405a   0x0000002e   Code   RO         1066    x$fpl$dflt          fz_wm.l(dflt_clz.o)
-    0x08004088   0x08004088   0x0000009c   Code   RO         1083    x$fpl$dnaninf       fz_wm.l(dnaninf.o)
-    0x08004124   0x08004124   0x0000000c   Code   RO         1085    x$fpl$dretinf       fz_wm.l(dretinf.o)
-    0x08004130   0x08004130   0x0000001a   Code   RO         1196    x$fpl$fpinit        fz_wm.l(fpinit.o)
-    0x0800414a   0x0800414a   0x00000000   Code   RO         1087    x$fpl$usenofp       fz_wm.l(usenofp.o)
-    0x0800414a   0x0800414a   0x00000006   PAD
-    0x08004150   0x08004150   0x00000050   Data   RO           55    .rodata..L__const.LoRa_setAutoLDO.BW  lora.o
-    0x080041a0   0x080041a0   0x00000010   Data   RO         1004    .rodata.AHBPrescTable  system_stm32f4xx.o
-    0x080041b0   0x080041b0   0x00000008   Data   RO         1005    .rodata.APBPrescTable  system_stm32f4xx.o
-    0x080041b8   0x080041b8   0x00000004   Data   RO           77    .rodata.str1.1      main.o
-    0x080041bc   0x080041bc   0x00000020   Data   RO         1257    Region$$Table       anon$$obj.o
+    0x08003810   0x08003810   0x0000039c   Code   RO           68    .text.main          main.o
+    0x08003bac   0x08003bac   0x0000001c   Code   RO           11    .text.newLoRa       lora.o
+    0x08003bc8   0x08003bc8   0x00000140   Code   RO           66    .text.setup         main.o
+    0x08003d08   0x08003d08   0x000002b8   Code   RO         1058    x$fpl$ddiv          fz_wm.l(ddiv.o)
+    0x08003fc0   0x08003fc0   0x0000005e   Code   RO         1061    x$fpl$dfix          fz_wm.l(dfix.o)
+    0x0800401e   0x0800401e   0x0000002e   Code   RO         1066    x$fpl$dflt          fz_wm.l(dflt_clz.o)
+    0x0800404c   0x0800404c   0x0000009c   Code   RO         1083    x$fpl$dnaninf       fz_wm.l(dnaninf.o)
+    0x080040e8   0x080040e8   0x0000000c   Code   RO         1085    x$fpl$dretinf       fz_wm.l(dretinf.o)
+    0x080040f4   0x080040f4   0x0000001a   Code   RO         1196    x$fpl$fpinit        fz_wm.l(fpinit.o)
+    0x0800410e   0x0800410e   0x00000000   Code   RO         1087    x$fpl$usenofp       fz_wm.l(usenofp.o)
+    0x0800410e   0x0800410e   0x00000002   PAD
+    0x08004110   0x08004110   0x00000050   Data   RO           55    .rodata..L__const.LoRa_setAutoLDO.BW  lora.o
+    0x08004160   0x08004160   0x00000010   Data   RO         1004    .rodata.AHBPrescTable  system_stm32f4xx.o
+    0x08004170   0x08004170   0x00000008   Data   RO         1005    .rodata.APBPrescTable  system_stm32f4xx.o
+    0x08004178   0x08004178   0x00000004   Data   RO           77    .rodata.str1.1      main.o
+    0x0800417c   0x0800417c   0x00000020   Data   RO         1257    Region$$Table       anon$$obj.o
 
 
-    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x080041e0, Size: 0x00000c88, Max: 0x00020000, ABSOLUTE)
+    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x080041a0, Size: 0x00000c88, Max: 0x00020000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   0x080041e0   0x00000008   Data   RW          640    .data..L_MergedGlobals  stm32f4xx_hal.o
-    0x20000008   0x080041e8   0x00000004   Data   RW         1003    .data.SystemCoreClock  system_stm32f4xx.o
-    0x2000000c   0x080041ec   0x00000004   PAD
+    0x20000000   0x080041a0   0x00000008   Data   RW          640    .data..L_MergedGlobals  stm32f4xx_hal.o
+    0x20000008   0x080041a8   0x00000004   Data   RW         1003    .data.SystemCoreClock  system_stm32f4xx.o
+    0x2000000c   0x080041ac   0x00000004   PAD
     0x20000010        -       0x00000060   Zero   RW         1122    .bss                c_w.l(libspace.o)
     0x20000070        -       0x00000074   Zero   RW           80    .bss..L_MergedGlobals  main.o
     0x200000e4        -       0x000004e4   Zero   RW           78    .bss.hpcd_USB_OTG_FS  main.o
@@ -2612,7 +2612,7 @@ Image component sizes
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
       1784          0         80          0          0      19538   lora.o
-      1482         48          4          0       1556      12210   main.o
+      1422         48          4          0       1556      12140   main.o
         64         26        452          0       1536        848   startup_stm32f446xx.o
        204          0          0          8          4       7539   stm32f4xx_hal.o
        162          0          0          0          0      10868   stm32f4xx_hal_cortex.o
@@ -2629,7 +2629,7 @@ Image component sizes
         18          0         24          4          0       2726   system_stm32f4xx.o
 
     ----------------------------------------------------------------------
-     13948         78        592         12       3100     209923   Object Totals
+     13888         78        592         12       3100     209853   Object Totals
          0          0         32          0          0          0   (incl. Generated)
         62          0          0          0          4          0   (incl. Padding)
 
@@ -2679,8 +2679,8 @@ Image component sizes
          0          0          0          0          0          0   usenofp.o
 
     ----------------------------------------------------------------------
-      2320        192          0          0         96       2312   Library Totals
-        14          0          0          0          0          0   (incl. Padding)
+      2316        192          0          0         96       2312   Library Totals
+        10          0          0          0          0          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -2690,7 +2690,7 @@ Image component sizes
       1030        148          0          0          0        892   fz_wm.l
 
     ----------------------------------------------------------------------
-      2320        192          0          0         96       2312   Library Totals
+      2316        192          0          0         96       2312   Library Totals
 
     ----------------------------------------------------------------------
 
@@ -2699,15 +2699,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     16268        270        592         12       3196     210847   Grand Totals
-     16268        270        592         12       3196     210847   ELF Image Totals
-     16268        270        592         12          0          0   ROM Totals
+     16204        270        592         12       3196     210777   Grand Totals
+     16204        270        592         12       3196     210777   ELF Image Totals
+     16204        270        592         12          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                16860 (  16.46kB)
+    Total RO  Size (Code + RO Data)                16796 (  16.40kB)
     Total RW  Size (RW Data + ZI Data)              3208 (   3.13kB)
-    Total ROM Size (Code + RO Data + RW Data)      16872 (  16.48kB)
+    Total ROM Size (Code + RO Data + RW Data)      16808 (  16.41kB)
 
 ==============================================================================
 
