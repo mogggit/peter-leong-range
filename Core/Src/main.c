@@ -152,16 +152,46 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	
+	uint8_t received_data[10];
+	uint8_t packet_size = 0;
+	char msg_buffer[65];
+	
 	char* send_data;
-	send_data = "Hello";
+	send_data = "Hello 2";
   while (1)
   {
-		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, 5, 100) == 1) {
+		//START RECEIVE
+		LoRa_startReceiving(&myLoRa);
+		packet_size = LoRa_receive(&myLoRa, received_data, 10);
+		
+		if (packet_size > 0) {
+			//print received data, encoded
+			/*
+			sprintf(message, "\n Received data:");
+			print_msg(message);
+			for (int i=0; i<10; i++) {
+				sprintf(message, "%d ", received_data[i]);
+				print_msg(message);
+			}
+			*/
+			
+			//print received data, decoded
+			memcpy(msg_buffer, received_data, packet_size);
+      msg_buffer[packet_size] = '\0'; //add null character
+			
+			sprintf(message, "\nReceived String: %s", msg_buffer);
+      print_msg(message);
+		//END RECEIVING
+		}
+		
+		//START TRANSMITTING
+		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, strlen(send_data), 100) == 1) {
         print_msg("Transmission Successful!\r\n");
     } else {
         print_msg("Transmission Failed.\r\n");
     }
-		HAL_Delay(500);
+		//END TRANSMITTING
+		HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
