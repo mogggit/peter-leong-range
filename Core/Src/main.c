@@ -104,7 +104,7 @@ void setup() {
 		print_msg(message);
 	}
 
-	LoRa_startReceiving(&myLoRa);
+	//LoRa_startReceiving(&myLoRa);
 
 	// HAL_GPIO_WritePin(GPIOB, DEBUG_LED_Pin, GPIO_PIN_SET);
 }
@@ -151,20 +151,49 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	
 	uint8_t received_data[10];
 	uint8_t packet_size = 0;
+	char msg_buffer[65];
+	
+	char* send_data;
+	send_data = "Hello 2";
   while (1)
   {
-    /* USER CODE END WHILE */
+		//START RECEIVE
+		LoRa_startReceiving(&myLoRa);
 		packet_size = LoRa_receive(&myLoRa, received_data, 10);
 		
-		sprintf(message, "\n Received data:");
-		print_msg(message);
-		for (int i=0; i<10; i++) {
-			sprintf(message, "%d ", received_data[i]);
+		if (packet_size > 0) {
+			//print received data, encoded
+			/*
+			sprintf(message, "\n Received data:");
 			print_msg(message);
+			for (int i=0; i<10; i++) {
+				sprintf(message, "%d ", received_data[i]);
+				print_msg(message);
+			}
+			*/
+			
+			//print received data, decoded
+			memcpy(msg_buffer, received_data, packet_size);
+      msg_buffer[packet_size] = '\0'; //add null character
+			
+			sprintf(message, "\nReceived String: %s", msg_buffer);
+      print_msg(message);
+		//END RECEIVING
 		}
-		HAL_Delay(500);
+		
+		//START TRANSMITTING
+		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, strlen(send_data), 100) == 1) {
+        print_msg("Transmission Successful!\r\n");
+    } else {
+        print_msg("Transmission Failed.\r\n");
+    }
+		//END TRANSMITTING
+		HAL_Delay(100);
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -394,13 +423,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**
