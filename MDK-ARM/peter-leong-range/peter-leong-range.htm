@@ -3,9 +3,9 @@
 <title>Static Call Graph - [peter-leong-range\peter-leong-range.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image peter-leong-range\peter-leong-range.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6240002: Last Updated: Mon Mar 16 21:50:12 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6240002: Last Updated: Tue Mar 17 10:29:22 2026
 <BR><P>
-<H3>Maximum Stack Usage =        296 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        288 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 __rt_entry_main &rArr; main &rArr; setup &rArr; LoRa_init &rArr; LoRa_setSpreadingFactor &rArr; LoRa_readReg &rArr; HAL_SPI_Receive &rArr; HAL_SPI_TransmitReceive &rArr; SPI_WaitFlagStateUntilTimeout
 <P>
@@ -249,7 +249,7 @@ Global Symbols
 <P><STRONG><a name="[cf]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[6c]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 296 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 288 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; setup &rArr; LoRa_init &rArr; LoRa_setSpreadingFactor &rArr; LoRa_readReg &rArr; HAL_SPI_Receive &rArr; HAL_SPI_TransmitReceive &rArr; SPI_WaitFlagStateUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -1013,8 +1013,8 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f446xx.o(RESET)
 </UL>
-<P><STRONG><a name="[6d]"></a>main</STRONG> (Thumb, 592 bytes, Stack size 32 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 296 + Unknown Stack Size
+<P><STRONG><a name="[6d]"></a>main</STRONG> (Thumb, 572 bytes, Stack size 24 bytes, main.o(.text.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 288 + Unknown Stack Size
 <LI>Call Chain = main &rArr; setup &rArr; LoRa_init &rArr; LoRa_setSpreadingFactor &rArr; LoRa_readReg &rArr; HAL_SPI_Receive &rArr; HAL_SPI_TransmitReceive &rArr; SPI_WaitFlagStateUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_PCD_Init

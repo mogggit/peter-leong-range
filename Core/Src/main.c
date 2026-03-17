@@ -152,13 +152,12 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	
-	//LoRa_gotoMode(&myLoRa, STNBY_MODE); // Or the equivalent command in your library
-	
-	uint8_t data_to_send[] = {0x01, 0x02, 0x03, 0x04, 0x05}; // Your payload
+	char* send_data;
+	send_data = "Hello";
   while (1)
   {
     /* USER CODE END WHILE */
-		if(LoRa_transmit(&myLoRa, data_to_send, sizeof(data_to_send), 1000) == LORA_OK) {
+		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, 5, 100) == LORA_OK) {
         print_msg("Transmission Successful!\r\n");
     } else {
         print_msg("Transmission Failed.\r\n");
@@ -399,7 +398,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if(GPIO_Pin == myLoRa.DIO0_pin){
+			//LoRa_handleDio0Irq(&myLoRa);
+		}
+}
 /* USER CODE END 4 */
 
 /**
