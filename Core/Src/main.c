@@ -72,12 +72,13 @@ void print_msg(char *msg) {
 	HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), 100);
 }
 
+LoRa myLoRa;
 void setup() {
 		
 	sprintf(message, "Starting\n");
 	print_msg(message);
 	// SX1276 compatible module connected to SPI1, NSS pin connected to GPIO with label LORA_NSS
-	LoRa myLoRa = newLoRa();
+	myLoRa = newLoRa();
 	
 	myLoRa.CS_port         = LoRa_NSS_GPIO_Port;
 	myLoRa.CS_pin          = LoRa_NSS_Pin;
@@ -89,11 +90,11 @@ void setup() {
 
 	myLoRa.frequency             = 915;             // default = 433 MHz
 	myLoRa.spredingFactor        = SF_7;            // default = SF_7
-	myLoRa.bandWidth             = BW_250KHz;       // default = BW_125KHz
-	myLoRa.crcRate               = CR_4_8;          // default = CR_4_5
+	myLoRa.bandWidth             = BW_125KHz;       // default = BW_125KHz
+	myLoRa.crcRate               = CR_4_5;          // default = CR_4_5
 	myLoRa.power                 = POWER_17db;      // default = 20db
 	myLoRa.overCurrentProtection = 130;             // default = 100 mA
-	myLoRa.preamble              = 10;              // default = 8;
+	myLoRa.preamble              = 8;              // default = 8;
 
 	if(LoRa_init(&myLoRa) == LORA_OK){
 		sprintf(message, "LoRa Ready\r\n");
@@ -150,10 +151,31 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	uint8_t received_data[10];
+	uint8_t packet_size = 0;
+	char msg_buffer[65];
   while (1)
   {
     /* USER CODE END WHILE */
-
+		packet_size = LoRa_receive(&myLoRa, received_data, 10);
+		
+		if (packet_size > 0) {
+			//print received data, encoded
+			sprintf(message, "\n Received data:");
+			print_msg(message);
+			for (int i=0; i<10; i++) {
+				sprintf(message, "%d ", received_data[i]);
+				print_msg(message);
+			}
+			//print received data, decoded
+			memcpy(msg_buffer, received_data, packet_size);
+      msg_buffer[packet_size] = '\0';
+			
+			sprintf(message, "\nReceived String: %s", msg_buffer);
+      print_msg(message);
+		}
+		
+		HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
