@@ -104,7 +104,7 @@ void setup() {
 		print_msg(message);
 	}
 
-	LoRa_startReceiving(&myLoRa);
+	//LoRa_startReceiving(&myLoRa);
 
 	// HAL_GPIO_WritePin(GPIOB, DEBUG_LED_Pin, GPIO_PIN_SET);
 }
@@ -151,19 +151,18 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	uint8_t received_data[10];
-	uint8_t packet_size = 0;
+	
+	//LoRa_gotoMode(&myLoRa, STNBY_MODE); // Or the equivalent command in your library
+	
+	uint8_t data_to_send[] = {0x01, 0x02, 0x03, 0x04, 0x05}; // Your payload
   while (1)
   {
     /* USER CODE END WHILE */
-		packet_size = LoRa_receive(&myLoRa, received_data, 10);
-		
-		sprintf(message, "\n Received data:");
-		print_msg(message);
-		for (int i=0; i<10; i++) {
-			sprintf(message, "%d ", received_data[i]);
-			print_msg(message);
-		}
+		if(LoRa_transmit(&myLoRa, data_to_send, sizeof(data_to_send), 1000) == LORA_OK) {
+        print_msg("Transmission Successful!\r\n");
+    } else {
+        print_msg("Transmission Failed.\r\n");
+    }
 		HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
