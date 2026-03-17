@@ -161,15 +161,18 @@ int main(void)
 		
 		if (packet_size > 0) {
 			//print received data, encoded
+			/*
 			sprintf(message, "\n Received data:");
 			print_msg(message);
 			for (int i=0; i<10; i++) {
 				sprintf(message, "%d ", received_data[i]);
 				print_msg(message);
 			}
+			*/
+			
 			//print received data, decoded
 			memcpy(msg_buffer, received_data, packet_size);
-      msg_buffer[packet_size] = '\0';
+      msg_buffer[packet_size] = '\0'; //add null character
 			
 			sprintf(message, "\nReceived String: %s", msg_buffer);
       print_msg(message);
