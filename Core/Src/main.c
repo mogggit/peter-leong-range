@@ -156,13 +156,14 @@ int main(void)
 	send_data = "Hello";
   while (1)
   {
-    /* USER CODE END WHILE */
-		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, 5, 100) == LORA_OK) {
+		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, 5, 100) == 1) {
         print_msg("Transmission Successful!\r\n");
     } else {
         print_msg("Transmission Failed.\r\n");
     }
 		HAL_Delay(500);
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -392,18 +393,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if(GPIO_Pin == myLoRa.DIO0_pin){
-			//LoRa_handleDio0Irq(&myLoRa);
-		}
-}
 /* USER CODE END 4 */
 
 /**
