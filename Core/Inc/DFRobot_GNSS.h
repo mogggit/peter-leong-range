@@ -16,7 +16,7 @@
 
 #include "main.h"
 
-	#define GNSS_DEVICE_ADDR 0x20
+	#define GNSS_DEVICE_ADDR (0x66 << 1)
   #define I2C_YEAR_H 0
   #define I2C_YEAR_L 1
   #define I2C_MONTH 2

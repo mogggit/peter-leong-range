@@ -80,7 +80,7 @@ LoRa myLoRa;
 DFRobot_GNSS_t gnss;
 void setup() {
 		
-	sprintf(message, "Starting\n");
+	sprintf(message, "\nStarting\n");
 	print_msg(message);
 	
 	//LORA SETUP
@@ -122,24 +122,14 @@ void setup() {
 	HAL_Delay(100);
 	
 	// GNSS sensor handshake
-	uint8_t buffer[1];
-	// Register 30 (I2C_ID) should return the device ID
-	if (HAL_I2C_Mem_Read(&hi2c2, GNSS_DEVICE_ADDR, I2C_ID, 1, buffer, 1, 100) == HAL_OK) {
-			if (buffer[0] == 0x20) { // 0x20 is the default ID for this chip
-					sprintf(message, "Device address is %d - GNSS detected\n", buffer[0]);
-					print_msg(message);
-				
-					setGnss(&gnss, eGPS_BeiDou_GLONASS);
-					HAL_Delay(100);
-					
-					sprintf(message, "GNSS on\n");
-					print_msg(message);
-			} else {
-					sprintf(message, "Device address is %d - Wrong device address\n", buffer[0]);
-					print_msg(message);
-			}
+	if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) {
+			setGnss(&gnss, eGPS_BeiDou_GLONASS);
+			HAL_Delay(100);
+		
+			sprintf(message, "GNSS Ready");
+			print_msg(message);
 	} else {
-			sprintf(message, "Error in connection - device not detected\n");
+			sprintf(message, "Error in GNSS connection");
 			print_msg(message);
 	}
 }

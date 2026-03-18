@@ -32,7 +32,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h)(0x69BAE4F3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pcd.h)(0x69BAE4F3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_usb.h)(0x69BAE4F3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pcd_ex.h)(0x69BAE4F3)
-F (../Core/Src/main.c)(0x69BAF7B8)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_peter-leong-range-IC:/Users/junex/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="543" -DSTM32F446xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F446xx-o peter-leong-range/main.o -MMD)
+F (../Core/Src/main.c)(0x69BB1445)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_peter-leong-range-IC:/Users/junex/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="543" -DSTM32F446xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F446xx-o peter-leong-range/main.o -MMD)
 I (..\Core\Inc\main.h)(0x69B96E59)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x69BAE4F3)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x69BAE910)
@@ -63,7 +63,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pcd.h)(0x69BAE4F3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_usb.h)(0x69BAE4F3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pcd_ex.h)(0x69BAE4F3)
 I (..\Core\Inc\LoRa.h)(0x69B72680)
-I (..\Core\Inc\DFRobot_GNSS.h)(0x69BAF8A3)
+I (..\Core\Inc\DFRobot_GNSS.h)(0x69BB1B48)
 F (../Core/Src/stm32f4xx_it.c)(0x69B96E59)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_peter-leong-range-IC:/Users/junex/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="543" -DSTM32F446xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F446xx-o peter-leong-range/stm32f4xx_it.o -MMD)
 I (..\Core\Inc\main.h)(0x69B96E59)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x69BAE4F3)
@@ -126,7 +126,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pcd.h)(0x69BAE4F3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_usb.h)(0x69BAE4F3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pcd_ex.h)(0x69BAE4F3)
 F (.\DFRobot_GNSS.c)(0x69BAF371)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I./RTE/_peter-leong-range-IC:/Users/junex/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="543" -DSTM32F446xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F446xx-o peter-leong-range/dfrobot_gnss.o -MMD)
-I (..\Core\Inc\DFRobot_GNSS.h)(0x69BAF8A3)
+I (..\Core\Inc\DFRobot_GNSS.h)(0x69BB1B48)
 I (..\Core\Inc\main.h)(0x69B96E59)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x69BAE4F3)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x69BAE910)
