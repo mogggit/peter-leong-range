@@ -14,6 +14,13 @@ Mode: Full-Duplex Master<br>
 | G0 | PF_12 | GPIO_EXTI12 |
 | RST | PB_4 | RESET_GPIO_Port |
 
+### I2C1 (DFR GNSS Module)
+<br>
+| GNSS Pin | Chip Pin | Function |
+| -------- | --------- | -------- |
+| D/T | PF_0 | I2C1_SCL |
+| G/R | PF_1 | I2C1_SDA |
+
 
 ## References
 Lora
