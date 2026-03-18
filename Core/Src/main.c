@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "LoRa.h"
+#include "DFRobot_GNSS.h"
 
 /* USER CODE END Includes */
 
@@ -43,6 +44,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c2;
+
 SPI_HandleTypeDef hspi1;
 
 UART_HandleTypeDef huart3;
@@ -59,6 +62,7 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -73,10 +77,13 @@ void print_msg(char *msg) {
 }
 
 LoRa myLoRa;
+DFRobot_GNSS_t gnss;
 void setup() {
 		
 	sprintf(message, "Starting\n");
 	print_msg(message);
+	
+	//LORA SETUP
 	// SX1276 compatible module connected to SPI1, NSS pin connected to GPIO with label LORA_NSS
 	myLoRa = newLoRa();
 	
@@ -107,6 +114,34 @@ void setup() {
 	//LoRa_startReceiving(&myLoRa);
 
 	// HAL_GPIO_WritePin(GPIOB, DEBUG_LED_Pin, GPIO_PIN_SET);
+	
+	
+	//GNSS SETUP
+	DFRobot_GNSS_Init(&gnss, &hi2c2, GNSS_DEVICE_ADDR); 
+	enablePower(&gnss);
+	HAL_Delay(100);
+	
+	// GNSS sensor handshake
+	uint8_t buffer[1];
+	// Register 30 (I2C_ID) should return the device ID
+	if (HAL_I2C_Mem_Read(&hi2c2, GNSS_DEVICE_ADDR, I2C_ID, 1, buffer, 1, 100) == HAL_OK) {
+			if (buffer[0] == 0x20) { // 0x20 is the default ID for this chip
+					sprintf(message, "Device address is %d - GNSS detected\n", buffer[0]);
+					print_msg(message);
+				
+					setGnss(&gnss, eGPS_BeiDou_GLONASS);
+					HAL_Delay(100);
+					
+					sprintf(message, "GNSS on\n");
+					print_msg(message);
+			} else {
+					sprintf(message, "Device address is %d - Wrong device address\n", buffer[0]);
+					print_msg(message);
+			}
+	} else {
+			sprintf(message, "Error in connection - device not detected\n");
+			print_msg(message);
+	}
 }
 
 /* USER CODE END 0 */
@@ -143,6 +178,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 	setup();
 	
@@ -152,28 +188,37 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	
+	// DATA FOR TRANSCEIVER
+	/*
 	uint8_t received_data[10];
 	uint8_t packet_size = 0;
 	char msg_buffer[65];
 	
 	char* send_data;
-	send_data = "Hello 1";
+	send_data = "Hello 1";*/
+	
   while (1)
   {
-		//START RECEIVE
-		LoRa_startReceiving(&myLoRa);
-		packet_size = LoRa_receive(&myLoRa, received_data, 10);
+		//GNSS CODE
 		
-		if (packet_size > 0) {
+		
+		//TRANSCEIVER LOOP
+		
+		//START RECEIVE
+		//LoRa_startReceiving(&myLoRa);
+		//packet_size = LoRa_receive(&myLoRa, received_data, 10);
+		
+		/*if (packet_size > 0) {
+			
 			//print received data, encoded
-			/*
+			
 			sprintf(message, "\n Received data:");
 			print_msg(message);
 			for (int i=0; i<10; i++) {
 				sprintf(message, "%d ", received_data[i]);
 				print_msg(message);
 			}
-			*/
+			
 			
 			//print received data, decoded
 			memcpy(msg_buffer, received_data, packet_size);
@@ -181,9 +226,15 @@ int main(void)
 			
 			sprintf(message, "\nReceived String: %s", msg_buffer);
       print_msg(message);
-		//END RECEIVING
-		}
+			
 		
+		//END RECEIVING
+		*/
+		
+		
+		
+		
+		/*
 		//START TRANSMITTING
 		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, strlen(send_data), 100) == 1) {
         print_msg("Transmission Successful!\r\n");
@@ -192,6 +243,8 @@ int main(void)
     }
 		//END TRANSMITTING
 		HAL_Delay(100);
+		*/
+		
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -243,6 +296,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
+
 }
 
 /**
@@ -365,10 +452,10 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
