@@ -15,7 +15,6 @@ Mode: Full-Duplex Master<br>
 | RST | PB_4 | RESET_GPIO_Port |
 
 ### I2C1 (DFR GNSS Module)
-<br>
 | GNSS Pin | Chip Pin | Function |
 | -------- | --------- | -------- |
 | D/T | PF_0 | I2C1_SCL |
