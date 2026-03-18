@@ -157,7 +157,7 @@ int main(void)
 	char msg_buffer[65];
 	
 	char* send_data;
-	send_data = "Hello 2";
+	send_data = "Hello 1";
   while (1)
   {
 		//START RECEIVE
