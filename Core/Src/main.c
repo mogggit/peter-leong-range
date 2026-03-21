@@ -180,15 +180,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	
 	// DATA FOR TRANSCEIVER
-	/*
+	
 	uint8_t received_data[10];
 	uint8_t packet_size = 0;
 	char msg_buffer[65];
 	
 	char* send_data;
-	send_data = "Hello 1";*/
 	
 	sGNSS_Data_t currentData;
+	char lora_payload[64];
+	
   while (1)
   {
 		//GNSS CODE
@@ -202,6 +203,17 @@ int main(void)
 								currentData.latitude, currentData.latDirection, 
 								currentData.longitude, currentData.lonDirection);
 				print_msg(message);
+			
+				snprintf(lora_payload, sizeof(lora_payload),
+             "LAT:%.6f%c,LON:%.6f%c",
+             currentData.latitude,
+             currentData.latDirection,
+             currentData.longitude,
+             currentData.lonDirection);
+		}
+		else {
+			snprintf(lora_payload, sizeof(lora_payload),
+      "NO FIX (%d sats)", currentData.satellites);
 		}
 		HAL_Delay(2000);
 		
@@ -237,16 +249,18 @@ int main(void)
 		
 		
 		
-		/*
+		
 		//START TRANSMITTING
-		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, strlen(send_data), 100) == 1) {
+		
+		
+		if(LoRa_transmit(&myLoRa, (uint8_t*)lora_payload, strlen(lora_payload), 100) == 1) {
         print_msg("Transmission Successful!\r\n");
     } else {
         print_msg("Transmission Failed.\r\n");
     }
 		//END TRANSMITTING
 		HAL_Delay(100);
-		*/
+		
 		
     /* USER CODE END WHILE */
 
