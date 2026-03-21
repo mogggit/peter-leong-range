@@ -5,7 +5,7 @@
 ### SPI1 (RFM95W LoRa)
 Mode: Full-Duplex Master<br>
 <br>
-| LoRa Pin | Chip Pin | Function |
+| LoRa Pin | Chip Pin | User Label |
 | -------- | --------- | -------- |
 | SCK | PA_5 | SPI1_SCK |
 | MISO | PA_6 | SPI1_MISO |
@@ -15,11 +15,20 @@ Mode: Full-Duplex Master<br>
 | RST | PB_4 | RESET_GPIO_Port |
 
 ### I2C1 (DFR GNSS Module)
-| GNSS Pin | Chip Pin | Function |
+| GNSS Pin | Chip Pin | User Label |
 | -------- | --------- | -------- |
 | D/T | PF_0 | I2C1_SCL |
 | G/R | PF_1 | I2C1_SDA |
 
+### SPI2 (LCD)
+Mode: Half-Duplex Master <br>
+| LCD Pin | Chip Pin | User Label |
+| ------- | -------- | -------- |
+| SCL | PB_10 | SPI2_SCK |
+| SDA | PC_3 | SPI2_MOSI |
+| DC | PC_0 | DC |
+| CS | PD_7 | CS |
+| RST |PD_5 | RST |
 
 ## References
 Lora
