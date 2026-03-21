@@ -418,7 +418,7 @@
             <File>
               <FileName>DFRobot_GNSS.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\DFRobot_GNSS.c</FilePath>
+              <FilePath>..\Core\Src\DFRobot_GNSS.c</FilePath>
             </File>
           </Files>
         </Group>

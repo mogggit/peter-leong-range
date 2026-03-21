@@ -262,7 +262,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\DFRobot_GNSS.c</PathWithFileName>
+      <PathWithFileName>..\Core\Src\DFRobot_GNSS.c</PathWithFileName>
       <FilenameWithoutPath>DFRobot_GNSS.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>

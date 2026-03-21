@@ -117,17 +117,18 @@ void setup() {
 	
 	
 	//GNSS SETUP
-	DFRobot_GNSS_Init(&gnss, &hi2c2, GNSS_DEVICE_ADDR); 
-	enablePower(&gnss);
+	GNSS_Init(&gnss, &hi2c2); 
+	GNSS_PowerControl(&gnss, true);
 	HAL_Delay(100);
 	
 	// GNSS sensor handshake
 	if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) {
-			setGnss(&gnss, eGPS_BeiDou_GLONASS);
+			GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS);
 			HAL_Delay(100);
 		
 			sprintf(message, "GNSS Ready");
 			print_msg(message);
+		
 	} else {
 			sprintf(message, "Error in GNSS connection");
 			print_msg(message);
@@ -187,10 +188,22 @@ int main(void)
 	char* send_data;
 	send_data = "Hello 1";*/
 	
+	sGNSS_Data_t currentData;
   while (1)
   {
 		//GNSS CODE
+		currentData = GNSS_GetAllData(&gnss);
 		
+		sprintf(message, "Sats visible: %d\r\n", currentData.satellites);
+		print_msg(message);
+
+		if (currentData.satellites >= 3) { // 3 is minimum for 2D fix, 4 for 3D
+				sprintf(message, "Lat: %f %c, Lon: %f %c\r\n", 
+								currentData.latitude, currentData.latDirection, 
+								currentData.longitude, currentData.lonDirection);
+				print_msg(message);
+		}
+		HAL_Delay(2000);
 		
 		//TRANSCEIVER LOOP
 		
@@ -510,6 +523,18 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint8_t sd3031_readReg(uint8_t reg, void* pBuf, size_t size) {
+    // The SD3031 address is 0x32 (standard) or adjusted by your library defines
+    // HAL expects address shifted left by 1: (0x32 << 1)
+    if (HAL_I2C_Mem_Read(&hi2c2, (0x32 << 1), reg, I2C_MEMADD_SIZE_8BIT, (uint8_t *)pBuf, size, 100) == HAL_OK) {
+        return 0;
+    }
+    return 1;
+}
+
+void sd3031_writeReg(uint8_t reg, void* pBuf, size_t size) {
+    HAL_I2C_Mem_Write(&hi2c2, (0x32 << 1), reg, I2C_MEMADD_SIZE_8BIT, (uint8_t *)pBuf, size, 100);
+}
 /* USER CODE END 4 */
 
 /**

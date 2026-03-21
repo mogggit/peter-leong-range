@@ -1,4 +1,4 @@
-peter-leong-range/dfrobot_gnss.o: DFRobot_GNSS.c \
+peter-leong-range/dfrobot_gnss.o: ..\Core\Src\DFRobot_GNSS.c \
   ..\Core\Inc\DFRobot_GNSS.h ..\Core\Inc\main.h \
   ..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h \
   ..\Core\Inc\stm32f4xx_hal_conf.h \
