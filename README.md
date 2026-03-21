@@ -7,24 +7,24 @@ Mode: Full-Duplex Master<br>
 <br>
 | LoRa Pin | Chip Pin | User Label |
 | -------- | --------- | -------- |
-| SCK | PA_5 | SPI1_SCK |
-| MISO | PA_6 | SPI1_MISO |
-| MOSI | PA_7 | SPI1_MOSI |
-| CS | PA_4 | SPI1_NSS |
-| G0 | PF_12 | GPIO_EXTI12 |
-| RST | PB_4 | RESET_GPIO_Port |
+| SCK | PA_5 | SCK |
+| MISO | PA_6 | MISO |
+| MOSI | PA_7 | MOSI |
+| CS | PA_4 | LoRa_NSS |
+| G0 | PF_12 | DIO0 |
+| RST | PB_4 | LoRa_RESET |
 
 ### I2C1 (DFR GNSS Module)
 | GNSS Pin | Chip Pin | User Label |
 | -------- | --------- | -------- |
-| D/T | PF_0 | I2C1_SCL |
-| G/R | PF_1 | I2C1_SDA |
+| D/T | PF_0 | I2C2_SCL |
+| G/R | PF_1 | I2C2_SDA |
 
 ### SPI2 (LCD)
 Mode: Half-Duplex Master <br>
 | LCD Pin | Chip Pin | User Label |
 | ------- | -------- | -------- |
-| SCL | PB_10 | SPI2_SCK |
+| SCL | PD_3 | SPI2_SCK |
 | SDA | PC_3 | SPI2_MOSI |
 | DC | PC_0 | DC |
 | CS | PD_7 | CS |
