@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "LoRa.h"
+#include "DFRobot_GNSS.h"
 
 /* USER CODE END Includes */
 
@@ -43,6 +44,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c2;
+
 SPI_HandleTypeDef hspi1;
 
 UART_HandleTypeDef huart3;
@@ -59,6 +62,7 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -73,10 +77,13 @@ void print_msg(char *msg) {
 }
 
 LoRa myLoRa;
+DFRobot_GNSS_t gnss;
 void setup() {
 		
-	sprintf(message, "Starting\n");
+	sprintf(message, "\nStarting\n");
 	print_msg(message);
+	
+	//LORA SETUP
 	// SX1276 compatible module connected to SPI1, NSS pin connected to GPIO with label LORA_NSS
 	myLoRa = newLoRa();
 	
@@ -107,6 +114,25 @@ void setup() {
 	//LoRa_startReceiving(&myLoRa);
 
 	// HAL_GPIO_WritePin(GPIOB, DEBUG_LED_Pin, GPIO_PIN_SET);
+	
+	
+	//GNSS SETUP
+	GNSS_Init(&gnss, &hi2c2); 
+	GNSS_PowerControl(&gnss, true);
+	HAL_Delay(100);
+	
+	// GNSS sensor handshake
+	if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) {
+			GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS);
+			HAL_Delay(100);
+		
+			sprintf(message, "GNSS Ready");
+			print_msg(message);
+		
+	} else {
+			sprintf(message, "Error in GNSS connection");
+			print_msg(message);
+	}
 }
 
 /* USER CODE END 0 */
@@ -143,6 +169,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 	setup();
 	
@@ -152,46 +179,85 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	
-	uint8_t received_data[10];
+	// DATA FOR TRANSCEIVER
+	
+	uint8_t received_data[64];
 	uint8_t packet_size = 0;
 	char msg_buffer[65];
 	
 	char* send_data;
-	send_data = "Hello 2";
+	
+	sGNSS_Data_t currentData;
+	char lora_payload[64];
+	
   while (1)
   {
+		//GNSS CODE
+		currentData = GNSS_GetAllData(&gnss);
+		
+		sprintf(message, "\nSats visible: %d\r\n", currentData.satellites);
+		print_msg(message);
+
+		if (currentData.satellites >= 3) { // 3 is minimum for 2D fix, 4 for 3D
+				sprintf(message, "Lat: %f %c, Lon: %f %c\r\n", 
+								currentData.latitude, currentData.latDirection, 
+								currentData.longitude, currentData.lonDirection);
+				print_msg(message);
+			
+				snprintf(lora_payload, sizeof(lora_payload),
+             "\nLAT:%.6f%c,LON:%.6f%c",
+             currentData.latitude,
+             currentData.latDirection,
+             currentData.longitude,
+             currentData.lonDirection);
+		}
+		else {
+			snprintf(lora_payload, sizeof(lora_payload),
+      "\nNO FIX (%d sats)", currentData.satellites);
+		}
+		HAL_Delay(2000);
+		
+		//TRANSCEIVER LOOP
+		
 		//START RECEIVE
 		LoRa_startReceiving(&myLoRa);
-		packet_size = LoRa_receive(&myLoRa, received_data, 10);
+		packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
 		
 		if (packet_size > 0) {
-			//print received data, encoded
+			
+			//PRINT ENCODED DATA
 			/*
-			sprintf(message, "\n Received data:");
+			sprintf(message, "\n Received data (encoded):");
 			print_msg(message);
 			for (int i=0; i<10; i++) {
 				sprintf(message, "%d ", received_data[i]);
 				print_msg(message);
-			}
-			*/
+			}*/
 			
-			//print received data, decoded
+			
+			//PRINT DECODED DATA
 			memcpy(msg_buffer, received_data, packet_size);
-      msg_buffer[packet_size] = '\0'; //add null character
+      msg_buffer[packet_size] = '\0';
 			
-			sprintf(message, "\nReceived String: %s", msg_buffer);
+			sprintf(message, "\nReceived Coordinates: %s", msg_buffer);
       print_msg(message);
-		//END RECEIVING
+			
 		}
+		//END RECEIVING
+		
 		
 		//START TRANSMITTING
-		if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, strlen(send_data), 100) == 1) {
-        print_msg("Transmission Successful!\r\n");
+		
+		
+		if(LoRa_transmit(&myLoRa, (uint8_t*)lora_payload, strlen(lora_payload), 100) == 1) {
+        print_msg("\nTransmission Successful!\r");
     } else {
-        print_msg("Transmission Failed.\r\n");
+        print_msg("\nTransmission Failed.\r");
     }
 		//END TRANSMITTING
 		HAL_Delay(100);
+		
+		
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -243,6 +309,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
+
 }
 
 /**
@@ -365,10 +465,10 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
@@ -433,6 +533,18 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint8_t sd3031_readReg(uint8_t reg, void* pBuf, size_t size) {
+    // The SD3031 address is 0x32 (standard) or adjusted by your library defines
+    // HAL expects address shifted left by 1: (0x32 << 1)
+    if (HAL_I2C_Mem_Read(&hi2c2, (0x32 << 1), reg, I2C_MEMADD_SIZE_8BIT, (uint8_t *)pBuf, size, 100) == HAL_OK) {
+        return 0;
+    }
+    return 1;
+}
+
+void sd3031_writeReg(uint8_t reg, void* pBuf, size_t size) {
+    HAL_I2C_Mem_Write(&hi2c2, (0x32 << 1), reg, I2C_MEMADD_SIZE_8BIT, (uint8_t *)pBuf, size, 100);
+}
 /* USER CODE END 4 */
 
 /**
