@@ -32,6 +32,9 @@ GNSS
 - [DFRobot GNSS Guide](https://wiki.dfrobot.com/dfr1103/)
 - [DFRobot Repo](https://github.com/DFRobot/DFRobot_GNSS/tree/master)
 
+Circular LCD
+- [GC9A01 with STM32] (https://controllerstech.com/how-to-interface-gc9a01-round-display-with-stm32-using-spi-lvgl-integration/)
+
 STM32
 - [ST-Nucleo-F446ZE Pinout](https://os.mbed.com/platforms/ST-Nucleo-F446ZE/)
 - [ST Wiki](https://wiki.st.com/stm32mcu/wiki/STM32StepByStep:Step1_Tools_installation)
