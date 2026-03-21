@@ -181,7 +181,7 @@ int main(void)
 	
 	// DATA FOR TRANSCEIVER
 	
-	uint8_t received_data[10];
+	uint8_t received_data[64];
 	uint8_t packet_size = 0;
 	char msg_buffer[65];
 	
@@ -195,7 +195,7 @@ int main(void)
 		//GNSS CODE
 		currentData = GNSS_GetAllData(&gnss);
 		
-		sprintf(message, "Sats visible: %d\r\n", currentData.satellites);
+		sprintf(message, "\nSats visible: %d\r\n", currentData.satellites);
 		print_msg(message);
 
 		if (currentData.satellites >= 3) { // 3 is minimum for 2D fix, 4 for 3D
@@ -205,7 +205,7 @@ int main(void)
 				print_msg(message);
 			
 				snprintf(lora_payload, sizeof(lora_payload),
-             "LAT:%.6f%c,LON:%.6f%c",
+             "\nLAT:%.6f%c,LON:%.6f%c",
              currentData.latitude,
              currentData.latDirection,
              currentData.longitude,
@@ -213,50 +213,46 @@ int main(void)
 		}
 		else {
 			snprintf(lora_payload, sizeof(lora_payload),
-      "NO FIX (%d sats)", currentData.satellites);
+      "\nNO FIX (%d sats)", currentData.satellites);
 		}
 		HAL_Delay(2000);
 		
 		//TRANSCEIVER LOOP
 		
 		//START RECEIVE
-		//LoRa_startReceiving(&myLoRa);
-		//packet_size = LoRa_receive(&myLoRa, received_data, 10);
+		LoRa_startReceiving(&myLoRa);
+		packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
 		
 		if (packet_size > 0) {
 			
-			//print received data, encoded
-			
-			sprintf(message, "\n Received data:");
+			//PRINT ENCODED DATA
+			/*
+			sprintf(message, "\n Received data (encoded):");
 			print_msg(message);
 			for (int i=0; i<10; i++) {
 				sprintf(message, "%d ", received_data[i]);
 				print_msg(message);
-			}
+			}*/
 			
 			
-			//print received data, decoded
+			//PRINT DECODED DATA
 			memcpy(msg_buffer, received_data, packet_size);
-      msg_buffer[packet_size] = '\0'; //add null character
+      msg_buffer[packet_size] = '\0';
 			
-			sprintf(message, "\nReceived String: %s", msg_buffer);
+			sprintf(message, "\nReceived Coordinates: %s", msg_buffer);
       print_msg(message);
 			
 		}
 		//END RECEIVING
 		
 		
-		
-		
-		
-		
 		//START TRANSMITTING
 		
 		
 		if(LoRa_transmit(&myLoRa, (uint8_t*)lora_payload, strlen(lora_payload), 100) == 1) {
-        print_msg("Transmission Successful!\r\n");
+        print_msg("\nTransmission Successful!\r");
     } else {
-        print_msg("Transmission Failed.\r\n");
+        print_msg("\nTransmission Failed.\r");
     }
 		//END TRANSMITTING
 		HAL_Delay(100);
