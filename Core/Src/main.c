@@ -223,7 +223,7 @@ int main(void)
 		//LoRa_startReceiving(&myLoRa);
 		//packet_size = LoRa_receive(&myLoRa, received_data, 10);
 		
-		/*if (packet_size > 0) {
+		if (packet_size > 0) {
 			
 			//print received data, encoded
 			
@@ -242,9 +242,9 @@ int main(void)
 			sprintf(message, "\nReceived String: %s", msg_buffer);
       print_msg(message);
 			
-		
+		}
 		//END RECEIVING
-		*/
+		
 		
 		
 		
