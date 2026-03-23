@@ -16,9 +16,26 @@ Mode: Full-Duplex Master<br>
 
 ### I2C1 (DFR GNSS Module)
 | GNSS Pin | Chip Pin | Function |
-| -------- | --------- | -------- |
+| -------- | --------- | ------- |
 | D/T | PF_0 | I2C1_SCL |
 | G/R | PF_1 | I2C1_SDA |
+
+### 8-bit Serial (3.5" LCD Display)
+| LCD Pin | Chip Pin | User Label |
+| ------- | -------- | ---------- |
+| D0 | PG_9 | D0 |
+| D1 | PG_14 | D1 |
+| D2 | PF_15 | D2 |
+| D3 | PE_13 | D3 |
+| D4 | PF_14 | D4 |
+| D5 | PE_11 | D5 |
+| D6 | PE_9 | D6 |
+| D7 | PF_13 | D7 |
+| RD | PB_1 | RD |
+| WR | PC_2 | WR |
+| RS | PF_4 | RS |
+| CS | PB_6 | CS |
+| RST | PB_2 | RST |
 
 
 ## References
@@ -31,6 +48,9 @@ Lora
 GNSS
 - [DFRobot GNSS Guide](https://wiki.dfrobot.com/dfr1103/)
 - [DFRobot Repo](https://github.com/DFRobot/DFRobot_GNSS/tree/master)
+
+3.5" LCD Display
+- [How to use The TFT LCD Touch Screen Module for Arduino](https://learn.carobot.ca/guide/touch-screen-module)
 
 STM32
 - [ST-Nucleo-F446ZE Pinout](https://os.mbed.com/platforms/ST-Nucleo-F446ZE/)

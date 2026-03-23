@@ -401,6 +401,16 @@
               <FilePath>..\Core\Src\LoRa.c</FilePath>
             </File>
             <File>
+              <FileName>DFRobot_GNSS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\DFRobot_GNSS.c</FilePath>
+            </File>
+            <File>
+              <FileName>ili9486.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\ili9486.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>
@@ -414,11 +424,6 @@
               <FileName>stm32f4xx_hal_msp.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/stm32f4xx_hal_msp.c</FilePath>
-            </File>
-            <File>
-              <FileName>DFRobot_GNSS.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\DFRobot_GNSS.c</FilePath>
             </File>
           </Files>
         </Group>
