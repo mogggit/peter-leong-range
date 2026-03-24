@@ -26,6 +26,7 @@
 #include "LoRa.h"
 #include "DFRobot_GNSS.h"
 #include "ili9486.h"
+#include "fonts.h"
 
 /* USER CODE END Includes */
 
@@ -45,6 +46,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc3;
+
 I2C_HandleTypeDef hi2c2;
 
 SPI_HandleTypeDef hspi1;
@@ -64,6 +67,7 @@ static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_I2C2_Init(void);
+static void MX_ADC3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -84,6 +88,13 @@ void setup() {
 		
 	sprintf(message, "\nStarting\n");
 	print_msg(message);
+	
+	// DISPLAY SETUP
+	ILI9486_Init();
+	ILI9486_SetRotation(1);
+	ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0)); // Black
+	HAL_Delay(500); // Wait 1 second
+	ILI9486_DrawString(10, 10, "Strating...", Font_11x18, WHITE, BLACK);
 	
 	//LORA SETUP
 	// SX1276 compatible module connected to SPI1, NSS pin connected to GPIO with label LORA_NSS
@@ -108,9 +119,11 @@ void setup() {
 	if(LoRa_init(&myLoRa) == LORA_OK){
 		sprintf(message, "LoRa Ready\r\n");
 		print_msg(message);
+		ILI9486_DrawString(10, 40, "LoRa Ready", Font_11x18, MAGENTA, BLACK);
 	}else {
 		sprintf(message, "Error in LoRa connection\r\n");
 		print_msg(message);
+		ILI9486_DrawString(10, 40, "Error in LoRa connection", Font_11x18, RED, BLACK);
 	}
 
 	//LoRa_startReceiving(&myLoRa);
@@ -129,22 +142,13 @@ void setup() {
 		
 			sprintf(message, "GNSS Ready");
 			print_msg(message);
+			ILI9486_DrawString(10, 70, "GNSS Ready", Font_11x18, GREEN, BLACK);
 		
 	} else {
 			sprintf(message, "Error in GNSS connection");
 			print_msg(message);
+			ILI9486_DrawString(10, 70, "Error in GNSS connection", Font_11x18, RED, BLACK);
 	}
-	
-	// DISPLAY SETUP
-	ILI9486_Init();
-	ILI9486_SetRotation(1);
-	ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0)); // Black
-	HAL_Delay(1000); // Wait 1 second
-	ILI9486_FillScreen(ILI9486_ColorRGB(255, 0, 0)); // Red
-	HAL_Delay(1000); // Wait 1 second
-	ILI9486_FillScreen(ILI9486_ColorRGB(0, 255, 0)); // Green
-	HAL_Delay(1000); // Wait 1 second
-	ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 255)); // Blue
 }
 
 /* USER CODE END 0 */
@@ -182,6 +186,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_I2C2_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
 	setup();
 	
@@ -233,17 +238,7 @@ int main(void)
 		LoRa_startReceiving(&myLoRa);
 		packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
 		
-		if (packet_size > 0) {
-			
-			//PRINT ENCODED DATA
-			/*
-			sprintf(message, "\n Received data (encoded):");
-			print_msg(message);
-			for (int i=0; i<10; i++) {
-				sprintf(message, "%d ", received_data[i]);
-				print_msg(message);
-			}*/
-			
+		if (packet_size > 0) {		
 			//PRINT DECODED DATA
 			memcpy(msg_buffer, received_data, packet_size);
       msg_buffer[packet_size] = '\0';
@@ -254,7 +249,6 @@ int main(void)
 		}
 		//END RECEIVING
 		
-		
 		//START TRANSMITTING
 		if(LoRa_transmit(&myLoRa, (uint8_t*)lora_payload, strlen(lora_payload), 100) == 1) {
         print_msg("\nTransmission Successful!\r");
@@ -263,7 +257,6 @@ int main(void)
     }
 		//END TRANSMITTING
 		HAL_Delay(100);
-		
 		
     /* USER CODE END WHILE */
 
@@ -316,6 +309,58 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief ADC3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC3_Init(void)
+{
+
+  /* USER CODE BEGIN ADC3_Init 0 */
+
+  /* USER CODE END ADC3_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC3_Init 1 */
+
+  /* USER CODE END ADC3_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc3.Instance = ADC3;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc3.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc3.Init.ScanConvMode = DISABLE;
+  hadc3.Init.ContinuousConvMode = DISABLE;
+  hadc3.Init.DiscontinuousConvMode = DISABLE;
+  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc3.Init.NbrOfConversion = 1;
+  hadc3.Init.DMAContinuousRequests = DISABLE;
+  hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_15;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC3_Init 2 */
+
+  /* USER CODE END ADC3_Init 2 */
+
 }
 
 /**
@@ -481,7 +526,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, TFT_RS_Pin|TFT_D7_Pin|TFT_D4_Pin|TFT_D2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, TFT_RS_Pin|TFT_D1_Pin|TFT_D6_Pin|TFT_D4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(TFT_WR_GPIO_Port, TFT_WR_Pin, GPIO_PIN_RESET);
@@ -496,10 +541,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, TFT_RD_Pin|TFT_RST_Pin|LoRa_RESET_Pin|TFT_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, TFT_D6_Pin|TFT_D5_Pin|TFT_D3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, TFT_D0_Pin|TFT_D7_Pin|TFT_D5_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, USB_PowerSwitchOn_Pin|TFT_D0_Pin|TFT_D1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, USB_PowerSwitchOn_Pin|TFT_D2_Pin|TFT_D3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
@@ -507,18 +552,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : TFT_RS_Pin TFT_D7_Pin TFT_D4_Pin TFT_D2_Pin */
-  GPIO_InitStruct.Pin = TFT_RS_Pin|TFT_D7_Pin|TFT_D4_Pin|TFT_D2_Pin;
+  /*Configure GPIO pins : TFT_RS_Pin TFT_D1_Pin TFT_D6_Pin TFT_D4_Pin */
+  GPIO_InitStruct.Pin = TFT_RS_Pin|TFT_D1_Pin|TFT_D6_Pin|TFT_D4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pin : TFT_WR_Pin */
   GPIO_InitStruct.Pin = TFT_WR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(TFT_WR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LoRa_NSS_Pin */
@@ -539,7 +584,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = TFT_RD_Pin|TFT_RST_Pin|TFT_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : DIO0_Pin */
@@ -548,11 +593,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(DIO0_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : TFT_D6_Pin TFT_D5_Pin TFT_D3_Pin */
-  GPIO_InitStruct.Pin = TFT_D6_Pin|TFT_D5_Pin|TFT_D3_Pin;
+  /*Configure GPIO pins : TFT_D0_Pin TFT_D7_Pin TFT_D5_Pin */
+  GPIO_InitStruct.Pin = TFT_D0_Pin|TFT_D7_Pin|TFT_D5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
@@ -568,11 +613,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : TFT_D0_Pin TFT_D1_Pin */
-  GPIO_InitStruct.Pin = TFT_D0_Pin|TFT_D1_Pin;
+  /*Configure GPIO pins : TFT_D2_Pin TFT_D3_Pin */
+  GPIO_InitStruct.Pin = TFT_D2_Pin|TFT_D3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/

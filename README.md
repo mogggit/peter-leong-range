@@ -23,14 +23,15 @@ Mode: Full-Duplex Master<br>
 ### 8-bit Serial (3.5" LCD Display)
 | LCD Pin | Chip Pin | User Label |
 | ------- | -------- | ---------- |
-| D0 | PG_9 | D0 |
-| D1 | PG_14 | D1 |
-| D2 | PF_15 | D2 |
-| D3 | PE_13 | D3 |
-| D4 | PF_14 | D4 |
-| D5 | PE_11 | D5 |
-| D6 | PE_9 | D6 |
-| D7 | PF_13 | D7 |
+
+| D7 | PE_11 | D7 |
+| D6 | PF_14 | D6 |
+| D5 | PE_13 | D5 |
+| D4 | PF_15 | D4 |
+| D3 | PG_14 | D3 |
+| D2 | PG_9 | D2 |
+| D1 | PF_13 | D1 |
+| D0 | PE_9 | D0 |
 | RD | PB_1 | RD |
 | WR | PC_2 | WR |
 | RS | PF_4 | RS |

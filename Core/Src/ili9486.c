@@ -9,17 +9,22 @@ static uint16_t _height = ILI9486_TFTHEIGHT;
 
 #define PIN_LOW(PORT, PIN)    HAL_GPIO_WritePin(PORT, PIN, GPIO_PIN_RESET)
 #define PIN_HIGH(PORT, PIN)   HAL_GPIO_WritePin(PORT, PIN, GPIO_PIN_SET)
+#define LCD_RS_HIGH() HAL_GPIO_WritePin(TFT_RS_GPIO_Port, TFT_RS_Pin, GPIO_PIN_SET)
+#define LCD_RS_LOW()  HAL_GPIO_WritePin(TFT_RS_GPIO_Port, TFT_RS_Pin, GPIO_PIN_RESET)
+#define LCD_CS_HIGH() HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_SET)
+#define LCD_CS_LOW()  HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_RESET)
 
 // Writes 8 bits to the scattered data bus pins using main.h definitions
 static inline void WRITE_8(uint8_t val) {
-    HAL_GPIO_WritePin(TFT_D0_GPIO_Port, TFT_D0_Pin, (val & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TFT_D1_GPIO_Port, TFT_D1_Pin, (val & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TFT_D2_GPIO_Port, TFT_D2_Pin, (val & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TFT_D3_GPIO_Port, TFT_D3_Pin, (val & 0x08) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TFT_D4_GPIO_Port, TFT_D4_Pin, (val & 0x10) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TFT_D5_GPIO_Port, TFT_D5_Pin, (val & 0x20) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TFT_D6_GPIO_Port, TFT_D6_Pin, (val & 0x40) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TFT_D7_GPIO_Port, TFT_D7_Pin, (val & 0x80) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    // For each pin, we either Set (lower 16 bits of BSRR) or Reset (upper 16 bits of BSRR)
+    TFT_D0_GPIO_Port->BSRR = (val & 0x01) ? TFT_D0_Pin : (uint32_t)TFT_D0_Pin << 16;
+    TFT_D1_GPIO_Port->BSRR = (val & 0x02) ? TFT_D1_Pin : (uint32_t)TFT_D1_Pin << 16;
+    TFT_D2_GPIO_Port->BSRR = (val & 0x04) ? TFT_D2_Pin : (uint32_t)TFT_D2_Pin << 16;
+    TFT_D3_GPIO_Port->BSRR = (val & 0x08) ? TFT_D3_Pin : (uint32_t)TFT_D3_Pin << 16;
+    TFT_D4_GPIO_Port->BSRR = (val & 0x10) ? TFT_D4_Pin : (uint32_t)TFT_D4_Pin << 16;
+    TFT_D5_GPIO_Port->BSRR = (val & 0x20) ? TFT_D5_Pin : (uint32_t)TFT_D5_Pin << 16;
+    TFT_D6_GPIO_Port->BSRR = (val & 0x40) ? TFT_D6_Pin : (uint32_t)TFT_D6_Pin << 16;
+    TFT_D7_GPIO_Port->BSRR = (val & 0x80) ? TFT_D7_Pin : (uint32_t)TFT_D7_Pin << 16;
 }
 
 static inline void pulseWR(void) {
@@ -173,4 +178,48 @@ void ILI9486_InvertDisplay(bool i) {
 
 uint16_t ILI9486_ColorRGB(uint8_t r, uint8_t g, uint8_t b) {
     return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+}
+
+void ILI9486_DrawChar(uint16_t x, uint16_t y, char ch, FontDef_t font, uint16_t color, uint16_t bgcolor) {
+    uint32_t i, b, j;
+
+    // Set the window for the character to speed up transmission
+    setAddrWindow(x, y, x + font.FontWidth - 1, y + font.FontHeight - 1);
+
+    // Loop through every row of the character
+    for (i = 0; i < font.FontHeight; i++) {
+        // Get the row data for the specific character
+        // Standard fonts usually start at ASCII 32 (Space)
+        b = font.data[(ch - 32) * font.FontHeight + i];
+
+        // Loop through every column (pixel) in that row
+        for (j = 0; j < font.FontWidth; j++) {
+            // Check if the specific bit is set (starting from the most significant bit)
+            if ((b << j) & 0x8000) {
+                writeData(color >> 8);
+                writeData(color & 0xFF);
+            } else {
+                writeData(bgcolor >> 8);
+                writeData(bgcolor & 0xFF);
+            }
+        }
+    }
+}
+void ILI9486_DrawString(uint16_t x, uint16_t y, const char* str, FontDef_t font, uint16_t color, uint16_t bgcolor) {
+    while (*str) {
+        // Check if there is enough space on the screen for the next character
+        if (x + font.FontWidth >= _width) {
+            x = 0;            // Reset to left margin
+            y += font.FontHeight; // Move to next line
+        }
+
+        // Stop drawing if we exceed the screen height
+        if (y + font.FontHeight >= _height) {
+            break;
+        }
+
+        ILI9486_DrawChar(x, y, *str, font, color, bgcolor);
+        x += font.FontWidth; // Advance cursor for next character
+        str++;
+    }
 }
