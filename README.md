@@ -22,8 +22,7 @@ Mode: Full-Duplex Master<br>
 
 ### 8-bit Serial (3.5" LCD Display)
 | LCD Pin | Chip Pin | User Label |
-| ------- | -------- | ---------- |
-
+| ------- | -------- | ---------- 
 | D7 | PE_11 | D7 |
 | D6 | PF_14 | D6 |
 | D5 | PE_13 | D5 |
