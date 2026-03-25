@@ -19,12 +19,12 @@
 LoRa newLoRa(){
 	LoRa new_LoRa;
 
-	new_LoRa.frequency             = 433       ;
+	new_LoRa.frequency             = 915       ;
 	new_LoRa.spredingFactor        = SF_7      ;
 	new_LoRa.bandWidth			   = BW_125KHz ;
 	new_LoRa.crcRate               = CR_4_5    ;
-	new_LoRa.power				   = POWER_20db;
-	new_LoRa.overCurrentProtection = 100       ;
+	new_LoRa.power				   = POWER_17db;
+	new_LoRa.overCurrentProtection = 130       ;
 	new_LoRa.preamble			   = 8         ;
 
 	return new_LoRa;

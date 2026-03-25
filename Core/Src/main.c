@@ -42,7 +42,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define GRID_STEP 40
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -93,62 +93,48 @@ void setup() {
 	ILI9486_Init();
 	ILI9486_SetRotation(1);
 	ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0)); // Black
-	HAL_Delay(500); // Wait 1 second
-	ILI9486_DrawString(10, 10, "Strating...", Font_11x18, WHITE, BLACK);
+	// HAL_Delay(200); // Wait 1 second
+	ILI9486_DrawString(10, 10, "Strating Peter Long Range...", Font_11x18, WHITE, BLACK);
 	
 	//LORA SETUP
 	// SX1276 compatible module connected to SPI1, NSS pin connected to GPIO with label LORA_NSS
 	myLoRa = newLoRa();
 	
-	myLoRa.CS_port         = LoRa_NSS_GPIO_Port;
-	myLoRa.CS_pin          = LoRa_NSS_Pin;
-	myLoRa.reset_port      = LoRa_RESET_GPIO_Port;
-	myLoRa.reset_pin       = LoRa_RESET_Pin;
-	myLoRa.DIO0_port       = DIO0_GPIO_Port;
-	myLoRa.DIO0_pin        = DIO0_Pin;
-	myLoRa.hSPIx           = &hspi1;
-
-	myLoRa.frequency             = 915;             // default = 433 MHz
-	myLoRa.spredingFactor        = SF_7;            // default = SF_7
-	myLoRa.bandWidth             = BW_125KHz;       // default = BW_125KHz
-	myLoRa.crcRate               = CR_4_5;          // default = CR_4_5
-	myLoRa.power                 = POWER_17db;      // default = 20db
-	myLoRa.overCurrentProtection = 130;             // default = 100 mA
-	myLoRa.preamble              = 8;              // default = 8;
+	myLoRa.CS_port      = LoRa_NSS_GPIO_Port;
+	myLoRa.CS_pin       = LoRa_NSS_Pin;
+	myLoRa.reset_port   = LoRa_RESET_GPIO_Port;
+	myLoRa.reset_pin    = LoRa_RESET_Pin;
+	myLoRa.DIO0_port    = DIO0_GPIO_Port;
+	myLoRa.DIO0_pin     = DIO0_Pin;
+	myLoRa.hSPIx        = &hspi1;
 
 	if(LoRa_init(&myLoRa) == LORA_OK){
 		sprintf(message, "LoRa Ready\r\n");
 		print_msg(message);
 		ILI9486_DrawString(10, 40, "LoRa Ready", Font_11x18, MAGENTA, BLACK);
-	}else {
+	} else {
 		sprintf(message, "Error in LoRa connection\r\n");
 		print_msg(message);
 		ILI9486_DrawString(10, 40, "Error in LoRa connection", Font_11x18, RED, BLACK);
 	}
-
-	//LoRa_startReceiving(&myLoRa);
-
-	// HAL_GPIO_WritePin(GPIOB, DEBUG_LED_Pin, GPIO_PIN_SET);
 	
 	//GNSS SETUP
 	GNSS_Init(&gnss, &hi2c2); 
 	GNSS_PowerControl(&gnss, true);
-	HAL_Delay(100);
 	
 	// GNSS sensor handshake
 	if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) {
-			GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS);
-			HAL_Delay(100);
+		GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS);
 		
-			sprintf(message, "GNSS Ready");
-			print_msg(message);
-			ILI9486_DrawString(10, 70, "GNSS Ready", Font_11x18, GREEN, BLACK);
-		
+		sprintf(message, "GNSS Ready");
+		print_msg(message);
+		ILI9486_DrawString(10, 70, "GNSS Ready", Font_11x18, GREEN, BLACK);
 	} else {
-			sprintf(message, "Error in GNSS connection");
-			print_msg(message);
-			ILI9486_DrawString(10, 70, "Error in GNSS connection", Font_11x18, RED, BLACK);
+		sprintf(message, "Error in GNSS connection");
+		print_msg(message);
+		ILI9486_DrawString(10, 70, "Error in GNSS connection", Font_11x18, RED, BLACK);
 	}
+	HAL_Delay(800);
 }
 
 /* USER CODE END 0 */
@@ -205,30 +191,56 @@ int main(void)
 	sGNSS_Data_t currentData;
 	char lora_payload[64];
 	
+	uint8_t sats_visible = 0;
+	
+	// Draw the background
+	ILI9486_DrawRadarGrid(GRID_STEP);
+	
+	// Blink not sats visiable
+	ILI9486_DrawString(160, 200, "NOm SATS VISIBLE", Font_11x18, BLACK, RED);
+	HAL_Delay(500);
+	ILI9486_EraseStringWithGrid(160, 200, "NO SATS VISIBLE", Font_11x18, GRID_STEP);
+	HAL_Delay(500);
+	
   while (1)
   {
+		
 		//GNSS CODE
 		currentData = GNSS_GetAllData(&gnss);
 		
 		sprintf(message, "\nSats visible: %d\r\n", currentData.satellites);
 		print_msg(message);
 
-		if (currentData.satellites >= 3) { // 3 is minimum for 2D fix, 4 for 3D
-				sprintf(message, "Lat: %f %c, Lon: %f %c\r\n", 
-								currentData.latitude, currentData.latDirection, 
-								currentData.longitude, currentData.lonDirection);
-				print_msg(message);
+		// TRANSMISSION
+		if (currentData.satellites < 3) {
+			snprintf(lora_payload, sizeof(lora_payload),
+      "\nNO FIX (%d sats)", currentData.satellites);
 			
-				snprintf(lora_payload, sizeof(lora_payload),
+			// draw "no fix" on the LCD
+			ILI9486_DrawString(160, 200, "NO SATS VISIBLE", Font_11x18, BLACK, RED);
+		} else {
+			
+			if (!sats_visible) {
+					ILI9486_EraseStringWithGrid(160, 200, "NO SATS VISIBLE", Font_11x18, GRID_STEP);
+			}
+			sprintf(message, "Lat: %f %c, Lon: %f %c\r\n", 
+							currentData.latitude, currentData.latDirection, 
+							currentData.longitude, currentData.lonDirection);
+			print_msg(message);
+			
+			// put the gnss data into lora_payload
+			snprintf(lora_payload, sizeof(lora_payload), // snprintf specifies size
              "\nLAT:%.6f%c,LON:%.6f%c",
              currentData.latitude,
              currentData.latDirection,
              currentData.longitude,
              currentData.lonDirection);
 		}
+		
+		if (currentData.satellites >= 3) { // 3 is minimum for 2D fix, 4 for 3D
+				
+		}
 		else {
-			snprintf(lora_payload, sizeof(lora_payload),
-      "\nNO FIX (%d sats)", currentData.satellites);
 		}
 		HAL_Delay(2000);
 		

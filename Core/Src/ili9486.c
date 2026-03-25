@@ -223,3 +223,80 @@ void ILI9486_DrawString(uint16_t x, uint16_t y, const char* str, FontDef_t font,
         str++;
     }
 }
+
+/**
+ * @brief Draws a radar-like grid with a black background and light green lines.
+ * @param step The distance in pixels between the grid lines (e.g., 30 or 40).
+ */
+void ILI9486_DrawRadarGrid(uint16_t step) {
+    // 1. Clear screen to Black
+    ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0));
+
+    // Define a Light Green color (R: 50, G: 200, B: 50)
+    uint16_t gridColor = ILI9486_ColorRGB(50, 200, 50);
+
+    // 2. Draw Vertical Lines
+    for (uint16_t x = 0; x < _width; x += step) {
+        // Draw a vertical line from top to bottom
+        for (uint16_t y = 0; y < _height; y++) {
+            ILI9486_DrawPixel(x, y, gridColor);
+        }
+    }
+
+    // 3. Draw Horizontal Lines
+    for (uint16_t y = 0; y < _height; y += step) {
+        // Draw a horizontal line from left to right
+        for (uint16_t x = 0; x < _width; x++) {
+            ILI9486_DrawPixel(x, y, gridColor);
+        }
+    }
+    
+    // 4. Optional: Draw a "Center Cross" in a brighter green to look like a scope
+    uint16_t centerX = _width / 2;
+    uint16_t centerY = _height / 2;
+    uint16_t brightGreen = ILI9486_ColorRGB(100, 255, 100);
+    
+    for(uint16_t i = 0; i < _width; i++) ILI9486_DrawPixel(i, centerY, brightGreen);
+    for(uint16_t i = 0; i < _height; i++) ILI9486_DrawPixel(centerX, i, brightGreen);
+}
+
+/**
+ * @brief Erases a rectangular area and restores the radar grid lines within it.
+ * @param x, y The top-left corner of the text box.
+ * @param w, h The width and height of the text box.
+ * @param step The grid spacing used in your radar.
+ */
+void ILI9486_RestoreGridArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t step) {
+    uint16_t gridColor = ILI9486_ColorRGB(50, 200, 50);
+    uint16_t black = ILI9486_ColorRGB(0, 0, 0);
+
+    // Set the drawing window to the specific text area
+    setAddrWindow(x, y, x + w - 1, y + h - 1);
+    PIN_HIGH(TFT_RS_GPIO_Port, TFT_RS_Pin);
+
+    for (uint16_t currY = y; currY < y + h; currY++) {
+        for (uint16_t currX = x; currX < x + w; currX++) {
+            // Mathematical check: Is this pixel on a vertical or horizontal line?
+            if ((currX % step == 0) || (currY % step == 0)) {
+                write8(gridColor >> 8);
+                write8(gridColor & 0xFF);
+            } else {
+                write8(black >> 8);
+                write8(black & 0xFF);
+            }
+        }
+    }
+}
+
+void ILI9486_EraseStringWithGrid(uint16_t x, uint16_t y, const char* str, FontDef_t font, uint16_t step) {
+    if (str == NULL) return;
+
+    // 1. Calculate the width of the string in pixels
+    uint16_t strLen = strlen(str);
+    uint16_t totalWidth = strLen * font.FontWidth;
+    uint16_t totalHeight = font.FontHeight;
+
+    // 2. Call the mathematical restoration function for this specific box
+    // This effectively "paints" the background grid back over the letters
+    ILI9486_RestoreGridArea(x, y, totalWidth, totalHeight, step);
+}

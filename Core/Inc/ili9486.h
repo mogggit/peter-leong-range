@@ -32,6 +32,9 @@ void ILI9486_InvertDisplay(bool i);
 void ILI9486_DrawImageFast(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data);
 void ILI9486_DrawChar(uint16_t x, uint16_t y, char ch, FontDef_t font, uint16_t color, uint16_t bgcolor);
 void ILI9486_DrawString(uint16_t x, uint16_t y, const char* str, FontDef_t font, uint16_t color, uint16_t bgcolor);
+void ILI9486_DrawRadarGrid(uint16_t step);
+void ILI9486_RestoreGridArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t step);
+void ILI9486_EraseStringWithGrid(uint16_t x, uint16_t y, const char* str, FontDef_t font, uint16_t step);
 
 // Helper macro for 565 color format
 uint16_t ILI9486_ColorRGB(uint8_t r, uint8_t g, uint8_t b);
