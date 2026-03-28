@@ -36,6 +36,7 @@ void ILI9486_DrawRadarGrid(uint16_t step);
 void ILI9486_RestoreGridArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t step);
 void ILI9486_EraseStringWithGrid(uint16_t x, uint16_t y, const char* str, FontDef_t font, uint16_t step);
 void ILI9486_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+void ILI9486_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *image);
 
 // Helper macro for 565 color format
 uint16_t ILI9486_ColorRGB(uint8_t r, uint8_t g, uint8_t b);

@@ -115,7 +115,7 @@ void ILI9486_Init(void) {
     writeData(0x10);
     
     writeCommand(0x36); // Memory Access Control
-    writeData(0x48);    // MX, BGR
+    writeData(0x40);    // MX, RGB
     
     writeCommand(0x3A); // Interface Pixel Format
     writeData(0x55);    // 16-bit/pixel
@@ -301,6 +301,7 @@ void ILI9486_EraseStringWithGrid(uint16_t x, uint16_t y, const char* str, FontDe
     ILI9486_RestoreGridArea(x, y, totalWidth, totalHeight, step);
 }
 
+<<<<<<< HEAD
 /**
  * @brief Fills a rectangular area with a single color.
  * @param x Top-left X coordinate
@@ -322,4 +323,18 @@ void ILI9486_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c
     // 3. Push the color data using your optimized 16-bit writer
     // Total pixels to fill is width * height
     writeData16(color, (uint32_t)w * h);
+=======
+void ILI9486_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *image) {
+    if ((x + w > _width) || (y + h > _height)) return;
+
+    setAddrWindow(x, y, x + w - 1, y + h - 1);
+
+    PIN_HIGH(TFT_RS_GPIO_Port, TFT_RS_Pin); // Data mode
+
+    uint32_t total = (uint32_t)w * h;
+    for (uint32_t i = 0; i < total; i++) {
+        write8(image[i] >> 8);
+        write8(image[i] & 0xFF);
+    }
+>>>>>>> 574a0abf11ab03074b1ca9b5ac61b5fcbb7b0d2e
 }
