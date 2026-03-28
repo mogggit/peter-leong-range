@@ -43,6 +43,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 #define GRID_STEP 40
+#define SCREEN_REFRESH_PERIOD 1000
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -75,67 +76,174 @@ static void MX_ADC3_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-char message[100];
+typedef enum {
+	INIT,
+	TX_RX,
+	DRAW_SATS,
+	DRAW_FAILED,
+	DRAW_RSSI,
+	PLOT,
+} SystemState;
+
+
 
 LoRa myLoRa;
 DFRobot_GNSS_t gnss;
+
+// DATA FOR TRANSCEIVER
+uint8_t received_data[64];
+uint8_t packet_size = 0;
+char msg_buffer[65];
+	
+char* send_data;
+	
+sGNSS_Data_t currentData;
+char lora_payload[64];
+
+char message[100];
 
 void print_msg(char *msg) {
 	HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), 100);
 }
 
-void setup() {
+/**
+ * @brief Prints the current system state and GNSS info to UART.
+ * @param state The current SystemState of the FSM
+ * @param sats  The number of satellites currently visible
+ */
+void Log_System_Status(SystemState state, int sats) {
+    char state_name[20];
+
+    // Convert Enum to String for printing
+    switch (state) {
+        case INIT:         strcpy(state_name, "INIT"); break;
+        case TX_RX:        strcpy(state_name, "TX_RX"); break;
+        case DRAW_SATS:    strcpy(state_name, "DRAW_SATS"); break;
+        case DRAW_FAILED:  strcpy(state_name, "DRAW_FAILED"); break;
+        case DRAW_RSSI:    strcpy(state_name, "DRAW_RSSI"); break;
+        case PLOT:         strcpy(state_name, "PLOT"); break;
+        default:           strcpy(state_name, "UNKNOWN"); break;
+    }
+
+    // Format the message with both the state name and the satellite count
+    // Using \r\n ensures compatibility with most serial monitors (Putty, TeraTerm)
+    sprintf(message, "\r\n[STATE: %s] - Sats visible: %d\r\n", state_name, sats);
+    print_msg(message);
+}
+
+/**
+ * @brief  Initializes peripherals.
+ * @return 1 if all peripherals initialized successfully, 0 if any failed.
+ */
+uint8_t setup_peripherals(void) {
+    uint8_t status = 1; // Assume success initially
+
+    sprintf(message, "\nStarting\n");
+    print_msg(message);
+    
+    // --- DISPLAY SETUP ---
+    ILI9486_Init();
+    ILI9486_SetRotation(1);
+    ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0)); 
+    ILI9486_DrawString(10, 10, "Starting Peter Long Range...", Font_11x18, WHITE, BLACK);
+    
+    // --- LORA SETUP ---
+    myLoRa = newLoRa();
+    myLoRa.CS_port    = LoRa_NSS_GPIO_Port;
+    myLoRa.CS_pin     = LoRa_NSS_Pin;
+    myLoRa.reset_port = LoRa_RESET_GPIO_Port;
+    myLoRa.reset_pin  = LoRa_RESET_Pin;
+    myLoRa.DIO0_port  = DIO0_GPIO_Port;
+    myLoRa.DIO0_pin   = DIO0_Pin;
+    myLoRa.hSPIx      = &hspi1;
+
+    if (LoRa_init(&myLoRa) == LORA_OK) {
+        sprintf(message, "LoRa Ready\r\n");
+        print_msg(message);
+        ILI9486_DrawString(10, 40, "LoRa Ready", Font_11x18, MAGENTA, BLACK);
+    } else {
+        sprintf(message, "Error in LoRa connection\r\n");
+        print_msg(message);
+        ILI9486_DrawString(10, 40, "Error in LoRa connection", Font_11x18, RED, BLACK);
+        status = 0; // Mark failure
+    }
+    
+    // --- GNSS SETUP ---
+    GNSS_Init(&gnss, &hi2c2); 
+    GNSS_PowerControl(&gnss, true);
+    
+    // GNSS sensor handshake
+    if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) {
+        GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS);
+        sprintf(message, "GNSS Ready");
+        print_msg(message);
+        ILI9486_DrawString(10, 70, "GNSS Ready", Font_11x18, GREEN, BLACK);
+    } else {
+        sprintf(message, "Error in GNSS connection");
+        print_msg(message);
+        ILI9486_DrawString(10, 70, "Error in GNSS connection", Font_11x18, RED, BLACK);
+        status = 0; // Mark failure
+    }
+
+    HAL_Delay(1000);
 		
-	sprintf(message, "\nStarting\n");
+
+    return status;
+}
+
+void GNSS_get_data() {
+	
+	// get data fromt gnss
+	currentData = GNSS_GetAllData(&gnss);
+	
+	// print number of sats visible
+	sprintf(message, "\nSats visible: %d\r\n", currentData.satellites);
 	print_msg(message);
 	
-	// DISPLAY SETUP
-	ILI9486_Init();
-	ILI9486_SetRotation(1);
-	ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0)); // Black
-	// HAL_Delay(200); // Wait 1 second
-	ILI9486_DrawString(10, 10, "Strating Peter Long Range...", Font_11x18, WHITE, BLACK);
-	
-	//LORA SETUP
-	// SX1276 compatible module connected to SPI1, NSS pin connected to GPIO with label LORA_NSS
-	myLoRa = newLoRa();
-	
-	myLoRa.CS_port      = LoRa_NSS_GPIO_Port;
-	myLoRa.CS_pin       = LoRa_NSS_Pin;
-	myLoRa.reset_port   = LoRa_RESET_GPIO_Port;
-	myLoRa.reset_pin    = LoRa_RESET_Pin;
-	myLoRa.DIO0_port    = DIO0_GPIO_Port;
-	myLoRa.DIO0_pin     = DIO0_Pin;
-	myLoRa.hSPIx        = &hspi1;
-
-	if(LoRa_init(&myLoRa) == LORA_OK){
-		sprintf(message, "LoRa Ready\r\n");
-		print_msg(message);
-		ILI9486_DrawString(10, 40, "LoRa Ready", Font_11x18, MAGENTA, BLACK);
-	} else {
-		sprintf(message, "Error in LoRa connection\r\n");
-		print_msg(message);
-		ILI9486_DrawString(10, 40, "Error in LoRa connection", Font_11x18, RED, BLACK);
-	}
-	
-	//GNSS SETUP
-	GNSS_Init(&gnss, &hi2c2); 
-	GNSS_PowerControl(&gnss, true);
-	
-	// GNSS sensor handshake
-	if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) {
-		GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS);
-		
-		sprintf(message, "GNSS Ready");
-		print_msg(message);
-		ILI9486_DrawString(10, 70, "GNSS Ready", Font_11x18, GREEN, BLACK);
-	} else {
-		sprintf(message, "Error in GNSS connection");
-		print_msg(message);
-		ILI9486_DrawString(10, 70, "Error in GNSS connection", Font_11x18, RED, BLACK);
-	}
-	HAL_Delay(800);
+	// print coordinates
+	sprintf(message, "Lat: %f %c, Lon: %f %c\r\n", 
+					currentData.latitude, currentData.latDirection, 
+					currentData.longitude, currentData.lonDirection);
+	print_msg(message);
+				
+	// put the gnss data into lora_payload
+	snprintf(lora_payload, sizeof(lora_payload), // snprintf specifies size
+						"\nLAT:%.6f%c,LON:%.6f%c",
+						currentData.latitude,
+						currentData.latDirection,
+						currentData.longitude,
+						currentData.lonDirection);
 }
+
+void LoRa_Transmit() {
+	//START TRANSMITTING
+	if(LoRa_transmit(&myLoRa, (uint8_t*)lora_payload, strlen(lora_payload), 100) == 1) {
+		print_msg("\nTransmission Successful!\r");
+	} else {
+		print_msg("\nTransmission Failed.\r");
+	}
+}
+
+uint8_t LoRa_Recieve() {
+	//START RECEIVE
+	LoRa_startReceiving(&myLoRa);
+	packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
+		
+	if (packet_size > 0) {		
+		//PRINT DECODED DATA
+		memcpy(msg_buffer, received_data, packet_size);
+		msg_buffer[packet_size] = '\0';
+		
+		sprintf(message, "\nReceived Coordinates: %s", msg_buffer);
+		print_msg(message);
+		return 1; // return 1 if success
+	}
+	return 0; // return 0 if unsuccessful
+}
+
+void calculate_position() {}
+	
+void draw_position() {}
 
 /* USER CODE END 0 */
 
@@ -174,102 +282,96 @@ int main(void)
   MX_I2C2_Init();
   MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
-	setup();
 	
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	
-	// DATA FOR TRANSCEIVER
-	uint8_t received_data[64];
-	uint8_t packet_size = 0;
-	char msg_buffer[65];
+	SystemState currentState = INIT;
 	
-	char* send_data;
+	uint32_t refreshedTime = HAL_GetTick();
+	uint8_t dataRecieved = 0;
 	
-	sGNSS_Data_t currentData;
-	char lora_payload[64];
-	
-	uint8_t sats_visible = 0;
-	
-	// Draw the background
-	ILI9486_DrawRadarGrid(GRID_STEP);
-	
-	// Blink not sats visiable
-	ILI9486_DrawString(160, 200, "NOm SATS VISIBLE", Font_11x18, BLACK, RED);
-	HAL_Delay(500);
-	ILI9486_EraseStringWithGrid(160, 200, "NO SATS VISIBLE", Font_11x18, GRID_STEP);
-	HAL_Delay(500);
-	
-  while (1)
-  {
-		
-		//GNSS CODE
-		currentData = GNSS_GetAllData(&gnss);
-		
-		sprintf(message, "\nSats visible: %d\r\n", currentData.satellites);
-		print_msg(message);
-
-		// TRANSMISSION
-		if (currentData.satellites < 3) {
-			snprintf(lora_payload, sizeof(lora_payload),
-      "\nNO FIX (%d sats)", currentData.satellites);
-			
-			// draw "no fix" on the LCD
-			ILI9486_DrawString(160, 200, "NO SATS VISIBLE", Font_11x18, BLACK, RED);
-		} else {
-			
-			if (!sats_visible) {
-					ILI9486_EraseStringWithGrid(160, 200, "NO SATS VISIBLE", Font_11x18, GRID_STEP);
-			}
-			sprintf(message, "Lat: %f %c, Lon: %f %c\r\n", 
-							currentData.latitude, currentData.latDirection, 
-							currentData.longitude, currentData.lonDirection);
-			print_msg(message);
-			
-			// put the gnss data into lora_payload
-			snprintf(lora_payload, sizeof(lora_payload), // snprintf specifies size
-             "\nLAT:%.6f%c,LON:%.6f%c",
-             currentData.latitude,
-             currentData.latDirection,
-             currentData.longitude,
-             currentData.lonDirection);
-		}
-		
-		if (currentData.satellites >= 3) { // 3 is minimum for 2D fix, 4 for 3D
+  while (1) {
+		// FSM
+		switch (currentState) {
+			case INIT: {
+				uint8_t setupStatus = setup_peripherals();
 				
-		}
-		else {
-		}
-		HAL_Delay(2000);
-		
-		//TRANSCEIVER LOOP
-		
-		//START RECEIVE
-		LoRa_startReceiving(&myLoRa);
-		packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
-		
-		if (packet_size > 0) {		
-			//PRINT DECODED DATA
-			memcpy(msg_buffer, received_data, packet_size);
-      msg_buffer[packet_size] = '\0';
+				if (setupStatus) {
+					// Draw the background
+					ILI9486_DrawRadarGrid(GRID_STEP);
+					
+					currentState = TX_RX;
+				}
+				break;
+			}
 			
-			sprintf(message, "\nReceived Coordinates: %s", msg_buffer);
-      print_msg(message);
+			case TX_RX: {
+				GNSS_get_data();
+				LoRa_Transmit();
+				dataRecieved = LoRa_Recieve();
+				
+				if (HAL_GetTick() - refreshedTime > SCREEN_REFRESH_PERIOD) {
+					refreshedTime = HAL_GetTick();
+					currentState = DRAW_SATS;
+				}
+				break;
+			}
 			
+			case DRAW_SATS: {
+				
+				char string_buffer[50];
+				sprintf(string_buffer, "Sats Visible: %d", currentData.satellites);
+				ILI9486_FillRect(10, 10, 200, 20, BLACK); // ERASE 
+				ILI9486_DrawString(10, 10, string_buffer, Font_11x18, RED, BLACK); // DRAW
+				
+				sprintf(message, "\n DRAW - Sats visible: %d\r\n", currentData.satellites);
+				print_msg(message);
+				
+				if (dataRecieved) {
+					currentState = DRAW_RSSI;
+				} else {
+					currentState = DRAW_FAILED;
+				}
+				break;
+			}
+			
+			case DRAW_FAILED: {
+				ILI9486_FillRect(200, 10, 200, 20, BLACK); // ERASE 
+				ILI9486_DrawString(200, 10, "Recieve Failed", Font_11x18, RED, BLACK);
+				
+				sprintf(message, "\nRecieved Failed\r\n");
+				print_msg(message);
+				
+				currentState = TX_RX;
+				break;
+			}
+			
+			case DRAW_RSSI: {
+				sprintf(message, "RSSI: something \r\n" ); // TODO
+				print_msg(message);
+				
+				if (currentData.satellites >= 3) { // AND THE OTHER ALSO SAT >= 3
+					currentState = PLOT;
+				} else {
+					currentState = TX_RX;
+				}
+				break;
+			}
+			
+			case PLOT: {
+				calculate_position();
+				draw_position();
+				
+				currentState = TX_RX;
+			}
+			break;
 		}
-		//END RECEIVING
-		
-		//START TRANSMITTING
-		if(LoRa_transmit(&myLoRa, (uint8_t*)lora_payload, strlen(lora_payload), 100) == 1) {
-        print_msg("\nTransmission Successful!\r");
-    } else {
-        print_msg("\nTransmission Failed.\r");
-    }
-		//END TRANSMITTING
-		HAL_Delay(100);
-		
+		Log_System_Status(currentState, currentData.satellites);
+		HAL_Delay(1);
+			
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

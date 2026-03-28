@@ -300,3 +300,26 @@ void ILI9486_EraseStringWithGrid(uint16_t x, uint16_t y, const char* str, FontDe
     // This effectively "paints" the background grid back over the letters
     ILI9486_RestoreGridArea(x, y, totalWidth, totalHeight, step);
 }
+
+/**
+ * @brief Fills a rectangular area with a single color.
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param w Width of the rectangle
+ * @param h Height of the rectangle
+ * @param color 16-bit RGB565 color
+ */
+void ILI9486_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+    // 1. Clipping: Ensure the rectangle stays within screen bounds
+    if (x >= _width || y >= _height) return;
+    if ((x + w) > _width)  w = _width  - x;
+    if ((y + h) > _height) h = _height - y;
+
+    // 2. Set the drawing area (window)
+    // The window is from (x, y) to (x + w - 1, y + h - 1)
+    setAddrWindow(x, y, x + w - 1, y + h - 1);
+
+    // 3. Push the color data using your optimized 16-bit writer
+    // Total pixels to fill is width * height
+    writeData16(color, (uint32_t)w * h);
+}
