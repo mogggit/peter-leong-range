@@ -27,6 +27,7 @@
 #include "DFRobot_GNSS.h"
 #include "ili9486.h"
 #include "fonts.h"
+#include "campus_map.h"
 
 /* USER CODE END Includes */
 
@@ -301,7 +302,7 @@ int main(void)
 				
 				if (setupStatus) {
 					// Draw the background
-					ILI9486_DrawRadarGrid(GRID_STEP);
+					ILI9486_DrawImage(0, 0, CAMPUS_MAP_WIDTH, CAMPUS_MAP_HEIGHT, CAMPUS_MAP);
 					
 					currentState = TX_RX;
 				}
@@ -324,8 +325,8 @@ int main(void)
 				
 				char string_buffer[50];
 				sprintf(string_buffer, "Sats Visible: %d", currentData.satellites);
-				ILI9486_FillRect(10, 10, 200, 20, BLACK); // ERASE 
-				ILI9486_DrawString(10, 10, string_buffer, Font_11x18, RED, BLACK); // DRAW
+				ILI9486_FillRect(10, 10, 150, 20, WHITE); // ERASE 
+				ILI9486_DrawString(10, 10, string_buffer, Font_11x18, RED, WHITE); // DRAW
 				
 				sprintf(message, "\n DRAW - Sats visible: %d\r\n", currentData.satellites);
 				print_msg(message);
@@ -339,8 +340,8 @@ int main(void)
 			}
 			
 			case DRAW_FAILED: {
-				ILI9486_FillRect(200, 10, 200, 20, BLACK); // ERASE 
-				ILI9486_DrawString(200, 10, "Recieve Failed", Font_11x18, RED, BLACK);
+				ILI9486_FillRect(200, 10, 200, 20, WHITE); // ERASE 
+				ILI9486_DrawString(200, 10, "Recieve Failed", Font_11x18, RED, WHITE);
 				
 				sprintf(message, "\nRecieved Failed\r\n");
 				print_msg(message);
