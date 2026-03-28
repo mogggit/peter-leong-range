@@ -301,6 +301,7 @@ void ILI9486_EraseStringWithGrid(uint16_t x, uint16_t y, const char* str, FontDe
     ILI9486_RestoreGridArea(x, y, totalWidth, totalHeight, step);
 }
 
+<<<<<<< HEAD
 /**
  * @brief Fills a rectangular area with a single color.
  * @param x Top-left X coordinate
@@ -322,8 +323,7 @@ void ILI9486_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c
     // 3. Push the color data using your optimized 16-bit writer
     // Total pixels to fill is width * height
     writeData16(color, (uint32_t)w * h);
-}
-
+=======
 void ILI9486_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *image) {
     if ((x + w > _width) || (y + h > _height)) return;
 
@@ -336,4 +336,5 @@ void ILI9486_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uin
         write8(image[i] >> 8);
         write8(image[i] & 0xFF);
     }
+>>>>>>> 574a0abf11ab03074b1ca9b5ac61b5fcbb7b0d2e
 }
