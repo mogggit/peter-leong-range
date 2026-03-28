@@ -115,7 +115,7 @@ void ILI9486_Init(void) {
     writeData(0x10);
     
     writeCommand(0x36); // Memory Access Control
-    writeData(0x48);    // MX, BGR
+    writeData(0x40);    // MX, RGB
     
     writeCommand(0x3A); // Interface Pixel Format
     writeData(0x55);    // 16-bit/pixel
@@ -299,4 +299,18 @@ void ILI9486_EraseStringWithGrid(uint16_t x, uint16_t y, const char* str, FontDe
     // 2. Call the mathematical restoration function for this specific box
     // This effectively "paints" the background grid back over the letters
     ILI9486_RestoreGridArea(x, y, totalWidth, totalHeight, step);
+}
+
+void ILI9486_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *image) {
+    if ((x + w > _width) || (y + h > _height)) return;
+
+    setAddrWindow(x, y, x + w - 1, y + h - 1);
+
+    PIN_HIGH(TFT_RS_GPIO_Port, TFT_RS_Pin); // Data mode
+
+    uint32_t total = (uint32_t)w * h;
+    for (uint32_t i = 0; i < total; i++) {
+        write8(image[i] >> 8);
+        write8(image[i] & 0xFF);
+    }
 }
