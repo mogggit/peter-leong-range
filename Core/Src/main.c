@@ -109,6 +109,15 @@ char lora_payload[64];
 
 char message[100];
 
+// COORDINATES TO PLOT
+const double landmarks[][2] = {
+    {43.664391190112326, -79.39938251880149},  // Robarts Library
+    {43.667395499459666, -79.39473914822973},  // ROM
+    {43.66398503010839, -79.3943497650812},  // Hart House
+    {43.662153820104415, -79.39143271015502},  // Legislative Assembly of Ontario
+};
+const int num_landmarks = 4;
+
 void print_msg(char *msg) {
 	HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), 100);
 }
@@ -300,11 +309,6 @@ int main(void)
 	uint32_t refreshedTime = HAL_GetTick();
 	uint8_t dataRecieved = 0;
 	
-	#define BAHEN_LON -79.396800
-	#define BAHEN_LAT 43.659804
-
-	#define CY_LON -79.382964
-	#define CY_LAT 43.661337
 	
   while (1) {
 		// FSM
@@ -316,33 +320,17 @@ int main(void)
 					// Draw the background
 					ILI9486_DrawImage(0, 0, CAMPUS_MAP_WIDTH, CAMPUS_MAP_HEIGHT, CAMPUS_MAP);
 					
-					//testing drawing a red dot where bahen is
+					//DRAWING LANDMARKS
 					int x, y;
-					
-					latlon_to_px(-79.404181, 43.666756, &x, &y);
-					sprintf(message, "bloor-spadina: %d %d\r\n", x, y);
-					print_msg(message);
-
-					latlon_to_px(-79.386656, 43.670444, &x, &y);
-					sprintf(message, "bloor-yonge: %d %d\r\n", x, y);
-					print_msg(message);
-
-					latlon_to_px(-79.400388, 43.657762, &x, &y);
-					sprintf(message, "college-spadina: %d %d\r\n", x, y);
-					print_msg(message);
-
-					latlon_to_px(-79.382964, 43.661336, &x, &y);
-					sprintf(message, "college-yonge: %d %d\r\n", x, y);
-					print_msg(message);
-					
-					latlon_to_px(BAHEN_LON, BAHEN_LAT, &x, &y);
-					for (int dy = -2; dy <= 2; dy++)
-							for (int dx = -2; dx <= 2; dx++)
-									ILI9486_DrawPixel(x + dx, y + dy, 0xF800);
+					for (int i = 0; i < num_landmarks; i++) {
+						latlon_to_px(landmarks[i][1], landmarks[i][0], &x, &y);
+						for (int dy = -2; dy <= 2; dy++)
+								for (int dx = -2; dx <= 2; dx++)
+										ILI9486_DrawPixel(x + dx, y + dy - 10, 0xF800);
+				}
 					
 					currentState = TX_RX;
 					
-					HAL_Delay(10000);
 				}
 				break;
 			}
