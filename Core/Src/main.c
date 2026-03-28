@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "LoRa.h"
 #include "DFRobot_GNSS.h"
 #include "ili9486.h"
@@ -45,6 +46,11 @@
 /* USER CODE BEGIN PM */
 #define GRID_STEP 40
 #define SCREEN_REFRESH_PERIOD 1000
+#define REF_LON -79.4042
+#define REF_LAT  43.666756
+#define ANGLE_DEG -17
+#define M_PI 3.14159265358979323846
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -71,7 +77,7 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_ADC3_Init(void);
 /* USER CODE BEGIN PFP */
-
+void latlon_to_px(double lon, double lat, int *px, int *py);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -294,6 +300,12 @@ int main(void)
 	uint32_t refreshedTime = HAL_GetTick();
 	uint8_t dataRecieved = 0;
 	
+	#define BAHEN_LON -79.396800
+	#define BAHEN_LAT 43.659804
+
+	#define CY_LON -79.382964
+	#define CY_LAT 43.661337
+	
   while (1) {
 		// FSM
 		switch (currentState) {
@@ -304,7 +316,33 @@ int main(void)
 					// Draw the background
 					ILI9486_DrawImage(0, 0, CAMPUS_MAP_WIDTH, CAMPUS_MAP_HEIGHT, CAMPUS_MAP);
 					
+					//testing drawing a red dot where bahen is
+					int x, y;
+					
+					latlon_to_px(-79.404181, 43.666756, &x, &y);
+					sprintf(message, "bloor-spadina: %d %d\r\n", x, y);
+					print_msg(message);
+
+					latlon_to_px(-79.386656, 43.670444, &x, &y);
+					sprintf(message, "bloor-yonge: %d %d\r\n", x, y);
+					print_msg(message);
+
+					latlon_to_px(-79.400388, 43.657762, &x, &y);
+					sprintf(message, "college-spadina: %d %d\r\n", x, y);
+					print_msg(message);
+
+					latlon_to_px(-79.382964, 43.661336, &x, &y);
+					sprintf(message, "college-yonge: %d %d\r\n", x, y);
+					print_msg(message);
+					
+					latlon_to_px(BAHEN_LON, BAHEN_LAT, &x, &y);
+					for (int dy = -2; dy <= 2; dy++)
+							for (int dx = -2; dx <= 2; dx++)
+									ILI9486_DrawPixel(x + dx, y + dy, 0xF800);
+					
 					currentState = TX_RX;
+					
+					HAL_Delay(10000);
 				}
 				break;
 			}
@@ -756,6 +794,29 @@ uint8_t sd3031_readReg(uint8_t reg, void* pBuf, size_t size) {
 
 void sd3031_writeReg(uint8_t reg, void* pBuf, size_t size) {
     HAL_I2C_Mem_Write(&hi2c2, (0x32 << 1), reg, I2C_MEMADD_SIZE_8BIT, (uint8_t *)pBuf, size, 100);
+}
+
+static double scale_x = 0;
+static double cos_a, sin_a, cos_lat;
+
+void latlon_to_px(double lon, double lat, int *px, int *py) {
+    if (scale_x == 0) {
+        cos_lat = cos(REF_LAT * M_PI / 180.0);
+        double dx = (-79.386656 - REF_LON) * cos_lat;
+        double dy = 43.670444 - REF_LAT;
+        double angle = atan2(-dy, dx);  // exact angle to make bloor-yonge y=0
+        cos_a = cos(angle);
+        sin_a = sin(angle);
+        double gx = cos_a * dx - sin_a * dy;
+        scale_x = 480.0 / gx;
+    }
+
+    double dx = (lon - REF_LON) * cos_lat;
+    double dy = lat - REF_LAT;
+    double gx = cos_a * dx - sin_a * dy;
+    double gy = sin_a * dx + cos_a * dy;
+    *px = (int)(gx * scale_x);
+    *py = (int)(-gy * scale_x);
 }
 /* USER CODE END 4 */
 
