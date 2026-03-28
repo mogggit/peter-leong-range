@@ -28,6 +28,7 @@
 #include "ili9486.h"
 #include "fonts.h"
 #include "campus_map.h"
+#include <math.h>
 
 /* USER CODE END Includes */
 
@@ -45,6 +46,10 @@
 /* USER CODE BEGIN PM */
 #define GRID_STEP 40
 #define SCREEN_REFRESH_PERIOD 1000
+#define REF_LON -79.4042
+#define REF_LAT  43.666756
+#define ANGLE_DEG -17
+#define M_PI 3.14159265358979323846
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -101,7 +106,17 @@ char* send_data;
 sGNSS_Data_t currentData;
 char lora_payload[64];
 
+char string_buffer[100];
 char message[100];
+
+// COORDINATES TO PLOT
+const double landmarks[][2] = {
+    {43.664391190112326, -79.39938251880149},  // Robarts Library
+    {43.667395499459666, -79.39473914822973},  // ROM
+    {43.66398503010839, -79.3943497650812},  // Hart House
+    {43.662153820104415, -79.39143271015502},  // Legislative Assembly of Ontario
+};
+const int num_landmarks = 4;
 
 void print_msg(char *msg) {
 	HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), 100);
@@ -226,25 +241,108 @@ void LoRa_Transmit() {
 }
 
 uint8_t LoRa_Recieve() {
-	//START RECEIVE
-	LoRa_startReceiving(&myLoRa);
-	packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
-		
-	if (packet_size > 0) {		
-		//PRINT DECODED DATA
-		memcpy(msg_buffer, received_data, packet_size);
-		msg_buffer[packet_size] = '\0';
-		
-		sprintf(message, "\nReceived Coordinates: %s", msg_buffer);
-		print_msg(message);
-		return 1; // return 1 if success
-	}
-	return 0; // return 0 if unsuccessful
+    LoRa_startReceiving(&myLoRa);
+    
+    // Poll for RxDone flag (bit 6) with a timeout
+    uint32_t startTime = HAL_GetTick();
+    uint32_t timeout_ms = 2000; // wait up to 2 seconds
+    
+    while (HAL_GetTick() - startTime < timeout_ms) {
+        uint8_t irqFlags = LoRa_read(&myLoRa, RegIrqFlags);
+        
+        if (irqFlags & 0x40) { // RxDone flag set
+            // Check for CRC error (bit 5)
+            if (irqFlags & 0x20) {
+                LoRa_write(&myLoRa, RegIrqFlags, 0xFF); // clear flags
+                print_msg("CRC Error!\r\n");
+                return 0;
+            }
+            // Now call receive to read the data
+            packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
+            
+            if (packet_size > 0) {
+                memcpy(msg_buffer, received_data, packet_size);
+                msg_buffer[packet_size] = '\0';
+                sprintf(message, "\nReceived: %s\r\n", msg_buffer);
+                print_msg(message);
+                return 1;
+            }
+        }
+        HAL_Delay(10);
+    }
+    
+    print_msg("RX Timeout\r\n");
+    return 0;
 }
 
-void calculate_position() {}
+static double scale_x = 0;
+static double cos_a, sin_a, cos_lat;
+
+void latlon_to_px(double lon, double lat, int *px, int *py) {
+    if (scale_x == 0) {
+        cos_lat = cos(REF_LAT * M_PI / 180.0);
+        double dx = (-79.386656 - REF_LON) * cos_lat;
+        double dy = 43.670444 - REF_LAT;
+        double angle = atan2(-dy, dx);  // exact angle to make bloor-yonge y=0
+        cos_a = cos(angle);
+        sin_a = sin(angle);
+        double gx = cos_a * dx - sin_a * dy;
+        scale_x = 480.0 / gx;
+    }
+
+    double dx = (lon - REF_LON) * cos_lat;
+    double dy = lat - REF_LAT;
+    double gx = cos_a * dx - sin_a * dy;
+    double gy = sin_a * dx + cos_a * dy;
+    *px = (int)(gx * scale_x);
+    *py = (int)(-gy * scale_x);
+}
+
+void draw_dot(int x, int y, int radius, uint16_t color) {
+    for (int dy = -radius; dy <= radius; dy++)
+        for (int dx = -radius; dx <= radius; dx++)
+            ILI9486_DrawPixel(x + dx, y + dy - 10, color);
+}
+
+void draw_landmarks() {
+    int x, y;
+    for (int i = 0; i < num_landmarks; i++) {
+        latlon_to_px(landmarks[i][1], landmarks[i][0], &x, &y);
+        draw_dot(x, y, 2, 0xF800);
+    }
+}
+// Track the last drawn position
+static int last_my_x = -1;
+static int last_my_y = -1;
+
+void erase_my_position() {
+    if (last_my_x < 0 || last_my_y < 0) return; // nothing drawn yet
+
+    int radius = 2;
+    for (int dy = -radius; dy <= radius; dy++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            int px = last_my_x + dx;
+            int py = last_my_y + dy;
+            // Bounds check
+            if (px < 0 || px >= CAMPUS_MAP_WIDTH || py < 0 || py >= CAMPUS_MAP_HEIGHT) continue;
+            // Read the original pixel from the campus map image data
+            uint16_t color = CAMPUS_MAP[py * CAMPUS_MAP_WIDTH + px];
+            ILI9486_DrawPixel(px, py, color);
+        }
+    }
+}
 	
-void draw_position() {}
+void draw_my_position() {
+    erase_my_position(); // erase old position first
+
+    int x, y;
+    latlon_to_px(currentData.longitude, currentData.latitude, &x, &y);
+    draw_dot(x, y, 2, 0x07E0); // green so it's distinct from red landmarks
+
+    // Save for next erase
+    last_my_x = x;
+    last_my_y = y;
+}
 
 /* USER CODE END 0 */
 
@@ -303,6 +401,7 @@ int main(void)
 				if (setupStatus) {
 					// Draw the background
 					ILI9486_DrawImage(0, 0, CAMPUS_MAP_WIDTH, CAMPUS_MAP_HEIGHT, CAMPUS_MAP);
+					draw_landmarks();
 					
 					currentState = TX_RX;
 				}
@@ -313,6 +412,8 @@ int main(void)
 				GNSS_get_data();
 				LoRa_Transmit();
 				dataRecieved = LoRa_Recieve();
+				dataRecieved = 1; // FOR TESTING REMOVE WHEN DONE
+				// TODO: DIFFERENT STATES FOR DRAW MYSELF AND DRAW OTHER
 				
 				if (HAL_GetTick() - refreshedTime > SCREEN_REFRESH_PERIOD) {
 					refreshedTime = HAL_GetTick();
@@ -323,9 +424,8 @@ int main(void)
 			
 			case DRAW_SATS: {
 				
-				char string_buffer[50];
 				sprintf(string_buffer, "Sats Visible: %d", currentData.satellites);
-				ILI9486_FillRect(10, 10, 150, 20, WHITE); // ERASE 
+				ILI9486_FillRect(10, 10, 170, 20, WHITE); // ERASE 
 				ILI9486_DrawString(10, 10, string_buffer, Font_11x18, RED, WHITE); // DRAW
 				
 				sprintf(message, "\n DRAW - Sats visible: %d\r\n", currentData.satellites);
@@ -340,7 +440,7 @@ int main(void)
 			}
 			
 			case DRAW_FAILED: {
-				ILI9486_FillRect(200, 10, 200, 20, WHITE); // ERASE 
+				ILI9486_FillRect(200, 10, 170, 20, WHITE); // ERASE 
 				ILI9486_DrawString(200, 10, "Recieve Failed", Font_11x18, RED, WHITE);
 				
 				sprintf(message, "\nRecieved Failed\r\n");
@@ -351,6 +451,11 @@ int main(void)
 			}
 			
 			case DRAW_RSSI: {
+				int32_t rssi = LoRa_getRSSI(&myLoRa);
+				sprintf(string_buffer, "RSSI: %d dB", rssi);
+				ILI9486_FillRect(200, 10, 170, 20, WHITE); // ERASE 
+				ILI9486_DrawString(200, 10, string_buffer, Font_11x18, RED, WHITE);
+				
 				sprintf(message, "RSSI: something \r\n" ); // TODO
 				print_msg(message);
 				
@@ -363,8 +468,7 @@ int main(void)
 			}
 			
 			case PLOT: {
-				calculate_position();
-				draw_position();
+				draw_my_position();
 				
 				currentState = TX_RX;
 			}
