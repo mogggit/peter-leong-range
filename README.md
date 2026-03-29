@@ -15,26 +15,10 @@ Mode: Full-Duplex Master<br>
 | RST | PB_4 | LoRa_RESET |
 
 ### I2C1 (DFR GNSS Module)
-<<<<<<< HEAD
 | GNSS Pin | Chip Pin | User Label |
 | -------- | --------- | -------- |
 | D/T | PF_0 | I2C2_SCL |
 | G/R | PF_1 | I2C2_SDA |
-
-### SPI2 (LCD)
-Mode: Half-Duplex Master <br>
-| LCD Pin | Chip Pin | User Label |
-| ------- | -------- | -------- |
-| SCL | PD_3 | SPI2_SCK |
-| SDA | PC_3 | SPI2_MOSI |
-| DC | PC_0 | DC |
-| CS | PD_7 | CS |
-| RST |PD_5 | RST |
-=======
-| GNSS Pin | Chip Pin | Function |
-| -------- | --------- | ------- |
-| D/T | PF_0 | I2C1_SCL |
-| G/R | PF_1 | I2C1_SDA |
 
 ### 8-bit Serial (3.5" LCD Display)
 | LCD Pin | Chip Pin | User Label |
