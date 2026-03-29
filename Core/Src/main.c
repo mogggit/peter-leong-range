@@ -49,7 +49,7 @@
 #define BS_LONGITUDE -79.4042 //Longitude of Bloor-Spadina
 #define BS_LATITUDE  43.666756 //Latitude of Bloor-Spadina
 #define BY_LONGITUDE -79.386656 //Longitude of Bloor-Yonge
-#define BY_LATITUDE 3.670444 //Latitude of Bloor-Yonge
+#define BY_LATITUDE 43.670444 //Latitude of Bloor-Yonge
 #define M_PI 3.14159265358979323846
 /* USER CODE END PM */
 
@@ -146,7 +146,6 @@ void Log_System_Status(SystemState state, int sats) {
         case DRAW_FAILED:  strcpy(state_name, "DRAW_FAILED"); break;
         case DRAW_RSSI:    strcpy(state_name, "DRAW_RSSI"); break;
         case PLOT_SELF:         strcpy(state_name, "PLOT_SELF"); break;
-	case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
 				case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
         default:           strcpy(state_name, "UNKNOWN"); break;
     }
@@ -482,6 +481,7 @@ int main(void)
 				uint8_t setupStatus = setup_peripherals();
 				
 				if (setupStatus) {
+					latlon_init();
 					// Draw the background
 					ILI9486_DrawImage(0, 0, CAMPUS_MAP_WIDTH, CAMPUS_MAP_HEIGHT, CAMPUS_MAP);
 					draw_landmarks();
@@ -562,7 +562,7 @@ int main(void)
 			}
 			
 			case PLOT_OTHER: {
-				draw_position(&currentData, &last_other_x, &last_other_y, 8, GREEN);
+				draw_position(&otherData, &last_other_x, &last_other_y, 8, GREEN);
 				currentState = TX_RX;
 			}
 		}
