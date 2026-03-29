@@ -105,8 +105,11 @@ char msg_buffer[65]; //buffer for decoded string
 
 //GNSS data object
 sGNSS_Data_t currentData;
-sGNSS_Data_t otherData;
+<<<<<<< HEAD
 //Buffer to TRANSMIT data
+=======
+sGNSS_Data_t otherData;
+>>>>>>> main
 char lora_payload[64];
 
 //Buffer for string that appears on DISPLAY
@@ -146,7 +149,6 @@ void Log_System_Status(SystemState state, int sats) {
         case DRAW_FAILED:  strcpy(state_name, "DRAW_FAILED"); break;
         case DRAW_RSSI:    strcpy(state_name, "DRAW_RSSI"); break;
         case PLOT_SELF:         strcpy(state_name, "PLOT_SELF"); break;
-	case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
 				case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
         default:           strcpy(state_name, "UNKNOWN"); break;
     }
@@ -182,13 +184,13 @@ uint8_t setup_peripherals(void) {
     myLoRa.DIO0_pin   = DIO0_Pin;
     myLoRa.hSPIx      = &hspi1;
 
-	//LoRa module handshake
+		//LoRa module handshake
     if (LoRa_init(&myLoRa) == LORA_OK) { //Module connected and recognized by controller
 				//Serial confirmation
         sprintf(message, "LoRa Ready\r\n");
         print_msg(message);
 					
-	//Screen confirmation
+				//Screen confirmation
         ILI9486_DrawString(10, 40, "LoRa Ready", Font_11x18, MAGENTA, BLACK);
 			
     } else { //Error in module connection
@@ -224,10 +226,7 @@ uint8_t setup_peripherals(void) {
         ILI9486_DrawString(10, 70, "Error in GNSS connection", Font_11x18, RED, BLACK);
         status = 0; // Fail flag
     }
-
     HAL_Delay(1000);
-		
-
     return status;
 }
 
@@ -248,14 +247,24 @@ void GNSS_get_data() {
 					currentData.latitude, currentData.latDirection, 
 					currentData.longitude, currentData.lonDirection);
 	print_msg(message);
-
-// Puts coordinates and direction into data payload
+				
+<<<<<<< HEAD
+	// Puts coordinates and direction into data payload
+	snprintf(lora_payload, sizeof(lora_payload), // snprintf specifies size
+						"\nLAT:%.6f%c,LON:%.6f%c",
+						currentData.latitude, 
+						currentData.latDirection, //Indicates Northern or Southern hemisphere
+						currentData.longitude, 
+						currentData.lonDirection); //Indicates Eastern or Western hemisphere
+=======
+	// put the gnss data into lora_payload
 	snprintf(lora_payload, sizeof(lora_payload), "%.6lf%c,%.6lf%c,%d",
     currentData.latitude,
     currentData.latDirection,
     currentData.longitude,
     currentData.lonDirection,
     currentData.satellites);
+>>>>>>> main
 }
 
 /**

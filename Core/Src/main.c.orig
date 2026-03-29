@@ -106,7 +106,10 @@ char msg_buffer[65]; //buffer for decoded string
 //GNSS data object
 sGNSS_Data_t currentData;
 sGNSS_Data_t otherData;
+<<<<<<< HEAD
 //Buffer to TRANSMIT data
+=======
+>>>>>>> db598865b94987c18393803f98ee0cdfff386b68
 char lora_payload[64];
 
 //Buffer for string that appears on DISPLAY
@@ -146,8 +149,11 @@ void Log_System_Status(SystemState state, int sats) {
         case DRAW_FAILED:  strcpy(state_name, "DRAW_FAILED"); break;
         case DRAW_RSSI:    strcpy(state_name, "DRAW_RSSI"); break;
         case PLOT_SELF:         strcpy(state_name, "PLOT_SELF"); break;
+<<<<<<< HEAD
 	case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
+=======
 				case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
+>>>>>>> db598865b94987c18393803f98ee0cdfff386b68
         default:           strcpy(state_name, "UNKNOWN"); break;
     }
 
@@ -248,8 +254,13 @@ void GNSS_get_data() {
 					currentData.latitude, currentData.latDirection, 
 					currentData.longitude, currentData.lonDirection);
 	print_msg(message);
+<<<<<<< HEAD
 
 // Puts coordinates and direction into data payload
+=======
+				
+	// put the gnss data into lora_payload
+>>>>>>> db598865b94987c18393803f98ee0cdfff386b68
 	snprintf(lora_payload, sizeof(lora_payload), "%.6lf%c,%.6lf%c,%d",
     currentData.latitude,
     currentData.latDirection,
