@@ -147,6 +147,7 @@ void Log_System_Status(SystemState state, int sats) {
         case DRAW_RSSI:    strcpy(state_name, "DRAW_RSSI"); break;
         case PLOT_SELF:         strcpy(state_name, "PLOT_SELF"); break;
 	case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
+				case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
         default:           strcpy(state_name, "UNKNOWN"); break;
     }
 
