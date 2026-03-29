@@ -15,6 +15,7 @@ Mode: Full-Duplex Master<br>
 | RST | PB_4 | LoRa_RESET |
 
 ### I2C1 (DFR GNSS Module)
+<<<<<<< HEAD
 | GNSS Pin | Chip Pin | User Label |
 | -------- | --------- | -------- |
 | D/T | PF_0 | I2C2_SCL |
@@ -29,6 +30,29 @@ Mode: Half-Duplex Master <br>
 | DC | PC_0 | DC |
 | CS | PD_7 | CS |
 | RST |PD_5 | RST |
+=======
+| GNSS Pin | Chip Pin | Function |
+| -------- | --------- | ------- |
+| D/T | PF_0 | I2C1_SCL |
+| G/R | PF_1 | I2C1_SDA |
+
+### 8-bit Serial (3.5" LCD Display)
+| LCD Pin | Chip Pin | User Label |
+| ------- | -------- | ---------- 
+| D7 | PE_11 | D7 |
+| D6 | PF_14 | D6 |
+| D5 | PE_13 | D5 |
+| D4 | PF_15 | D4 |
+| D3 | PG_14 | D3 |
+| D2 | PG_9 | D2 |
+| D1 | PF_13 | D1 |
+| D0 | PE_9 | D0 |
+| RD | PB_1 | RD |
+| WR | PC_2 | WR |
+| RS | PF_4 | RS |
+| CS | PB_6 | CS |
+| RST | PB_2 | RST |
+
 
 ## References
 Lora
@@ -41,8 +65,8 @@ GNSS
 - [DFRobot GNSS Guide](https://wiki.dfrobot.com/dfr1103/)
 - [DFRobot Repo](https://github.com/DFRobot/DFRobot_GNSS/tree/master)
 
-Circular LCD
-- [GC9A01 with STM32](https://controllerstech.com/how-to-interface-gc9a01-round-display-with-stm32-using-spi-lvgl-integration/)
+3.5" LCD Display
+- [How to use The TFT LCD Touch Screen Module for Arduino](https://learn.carobot.ca/guide/touch-screen-module)
 
 STM32
 - [ST-Nucleo-F446ZE Pinout](https://os.mbed.com/platforms/ST-Nucleo-F446ZE/)

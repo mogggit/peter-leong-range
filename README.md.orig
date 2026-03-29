@@ -1,0 +1,79 @@
+## Block Diagram
+![342 Project Block Diagram.drawio.png](https://github.com/mogggit/peter-long-range/blob/main/342%20Project%20Block%20Diagram.drawio.png?raw=true)
+
+## Pinout & Configuration
+### SPI1 (RFM95W LoRa)
+Mode: Full-Duplex Master<br>
+<br>
+| LoRa Pin | Chip Pin | User Label |
+| -------- | --------- | -------- |
+| SCK | PA_5 | SCK |
+| MISO | PA_6 | MISO |
+| MOSI | PA_7 | MOSI |
+| CS | PA_4 | LoRa_NSS |
+| G0 | PF_12 | DIO0 |
+| RST | PB_4 | LoRa_RESET |
+
+### I2C1 (DFR GNSS Module)
+<<<<<<< HEAD
+| GNSS Pin | Chip Pin | User Label |
+| -------- | --------- | -------- |
+| D/T | PF_0 | I2C2_SCL |
+| G/R | PF_1 | I2C2_SDA |
+
+### SPI2 (LCD)
+Mode: Half-Duplex Master <br>
+| LCD Pin | Chip Pin | User Label |
+| ------- | -------- | -------- |
+| SCL | PD_3 | SPI2_SCK |
+| SDA | PC_3 | SPI2_MOSI |
+| DC | PC_0 | DC |
+| CS | PD_7 | CS |
+| RST |PD_5 | RST |
+=======
+| GNSS Pin | Chip Pin | Function |
+| -------- | --------- | ------- |
+| D/T | PF_0 | I2C1_SCL |
+| G/R | PF_1 | I2C1_SDA |
+
+### 8-bit Serial (3.5" LCD Display)
+| LCD Pin | Chip Pin | User Label |
+| ------- | -------- | ---------- 
+| D7 | PE_11 | D7 |
+| D6 | PF_14 | D6 |
+| D5 | PE_13 | D5 |
+| D4 | PF_15 | D4 |
+| D3 | PG_14 | D3 |
+| D2 | PG_9 | D2 |
+| D1 | PF_13 | D1 |
+| D0 | PE_9 | D0 |
+| RD | PB_1 | RD |
+| WR | PC_2 | WR |
+| RS | PF_4 | RS |
+| CS | PB_6 | CS |
+| RST | PB_2 | RST |
+
+>>>>>>> display-3.5
+
+## References
+Lora
+- [STM32 LoRa Repo](https://github.com/SMotlaq/LoRa)
+- [Adafruit LoRa Pinout](https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts/pinouts)
+- [Adafruit LoRa Guide](https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts/using-the-rfm69-radio)
+- [RadioHead Repo](https://github.com/adafruit/RadioHead/tree/master)
+
+GNSS
+- [DFRobot GNSS Guide](https://wiki.dfrobot.com/dfr1103/)
+- [DFRobot Repo](https://github.com/DFRobot/DFRobot_GNSS/tree/master)
+
+<<<<<<< HEAD
+Circular LCD
+- [GC9A01 with STM32](https://controllerstech.com/how-to-interface-gc9a01-round-display-with-stm32-using-spi-lvgl-integration/)
+=======
+3.5" LCD Display
+- [How to use The TFT LCD Touch Screen Module for Arduino](https://learn.carobot.ca/guide/touch-screen-module)
+>>>>>>> display-3.5
+
+STM32
+- [ST-Nucleo-F446ZE Pinout](https://os.mbed.com/platforms/ST-Nucleo-F446ZE/)
+- [ST Wiki](https://wiki.st.com/stm32mcu/wiki/STM32StepByStep:Step1_Tools_installation)
