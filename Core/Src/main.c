@@ -46,9 +46,10 @@
 /* USER CODE BEGIN PM */
 #define GRID_STEP 40
 #define SCREEN_REFRESH_PERIOD 1000
-#define REF_LON -79.4042
-#define REF_LAT  43.666756
-#define ANGLE_DEG -17
+#define BS_LONGITUDE -79.4042 //Longitude of Bloor-Spadina
+#define BS_LATITUDE  43.666756 //Latitude of Bloor-Spadina
+#define BY_LONGITUDE -79.386656 //Longitude of Bloor-Yonge
+#define BY_LATITUDE 3.670444 //Latitude of Bloor-Yonge
 #define M_PI 3.14159265358979323846
 /* USER CODE END PM */
 
@@ -92,45 +93,50 @@ typedef enum {
 } SystemState;
 
 
-
+//LoRa object and GNSS object
 LoRa myLoRa;
 DFRobot_GNSS_t gnss;
 
-// DATA FOR TRANSCEIVER
-uint8_t received_data[64];
+//Buffer to RECEIVE data 
+uint8_t received_data[64]; //raw data buffer
 uint8_t packet_size = 0;
-char msg_buffer[65];
-	
-char* send_data;
-	
+char msg_buffer[65]; //buffer for decoded string
+
+//GNSS data object
 sGNSS_Data_t currentData;
+//Buffer to TRANSMIT data
 char lora_payload[64];
 
+//Buffer for string that appears on DISPLAY
 char string_buffer[100];
+//Buffer for string that appears in serial monitor (for debugging)
 char message[100];
 
-// COORDINATES TO PLOT
+//Landmark coordinates that appear on the map (RED)
 const double landmarks[][2] = {
-    {43.664391190112326, -79.39938251880149},  // Robarts Library
-    {43.667395499459666, -79.39473914822973},  // ROM
-    {43.66398503010839, -79.3943497650812},  // Hart House
-    {43.662153820104415, -79.39143271015502},  // Legislative Assembly of Ontario
+    {43.664391190112326, -79.39938251880149},  //Robarts
+    {43.667395499459666, -79.39473914822973},  //ROM
+    {43.66398503010839, -79.3943497650812},  //Hart House
+    {43.662153820104415, -79.39143271015502},  //Legislative Assembly
 };
 const int num_landmarks = 4;
 
+//Scale and angle parameters for map
+static double scale = 0;
+static double cos_a, sin_a, cos_lat;
+
+//Print function for serial monitor
 void print_msg(char *msg) {
 	HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), 100);
 }
 
 /**
- * @brief Prints the current system state and GNSS info to UART.
- * @param state The current SystemState of the FSM
- * @param sats  The number of satellites currently visible
+ * @brief Prints the current system state and # satellites to serial monitor.
  */
 void Log_System_Status(SystemState state, int sats) {
     char state_name[20];
 
-    // Convert Enum to String for printing
+    // Get current state as a string
     switch (state) {
         case INIT:         strcpy(state_name, "INIT"); break;
         case TX_RX:        strcpy(state_name, "TX_RX"); break;
@@ -141,29 +147,28 @@ void Log_System_Status(SystemState state, int sats) {
         default:           strcpy(state_name, "UNKNOWN"); break;
     }
 
-    // Format the message with both the state name and the satellite count
-    // Using \r\n ensures compatibility with most serial monitors (Putty, TeraTerm)
+    // Prints state name and satellite count to serial monitor
     sprintf(message, "\r\n[STATE: %s] - Sats visible: %d\r\n", state_name, sats);
     print_msg(message);
 }
 
 /**
- * @brief  Initializes peripherals.
- * @return 1 if all peripherals initialized successfully, 0 if any failed.
+ * @brief  Initializing peripherals.
+ * @return 1 if all peripherals initialized successfully, 0 if ANY failed.
  */
 uint8_t setup_peripherals(void) {
-    uint8_t status = 1; // Assume success initially
+    uint8_t status = 1; // Starts with success flag high
 
-    sprintf(message, "\nStarting\n");
+    sprintf(message, "\nStarting\n"); //Startup message (serial)
     print_msg(message);
     
-    // --- DISPLAY SETUP ---
+    // DISPLAY SETUP
     ILI9486_Init();
-    ILI9486_SetRotation(1);
-    ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0)); 
-    ILI9486_DrawString(10, 10, "Starting Peter Long Range...", Font_11x18, WHITE, BLACK);
+    ILI9486_SetRotation(1); //Screen orientation
+    ILI9486_FillScreen(ILI9486_ColorRGB(0, 0, 0)); //Black background
+    ILI9486_DrawString(10, 10, "Starting Peter Long Range...", Font_11x18, WHITE, BLACK); //Display startup message on screen
     
-    // --- LORA SETUP ---
+    // LORA SETUP
     myLoRa = newLoRa();
     myLoRa.CS_port    = LoRa_NSS_GPIO_Port;
     myLoRa.CS_pin     = LoRa_NSS_Pin;
@@ -173,96 +178,123 @@ uint8_t setup_peripherals(void) {
     myLoRa.DIO0_pin   = DIO0_Pin;
     myLoRa.hSPIx      = &hspi1;
 
-    if (LoRa_init(&myLoRa) == LORA_OK) {
+		//LoRa module handshake
+    if (LoRa_init(&myLoRa) == LORA_OK) { //Module connected and recognized by controller
+				//Serial confirmation
         sprintf(message, "LoRa Ready\r\n");
         print_msg(message);
+					
+				//Screen confirmation
         ILI9486_DrawString(10, 40, "LoRa Ready", Font_11x18, MAGENTA, BLACK);
-    } else {
+			
+    } else { //Error in module connection
+				//Serial error message
         sprintf(message, "Error in LoRa connection\r\n");
         print_msg(message);
+			
+				//Screen error message
         ILI9486_DrawString(10, 40, "Error in LoRa connection", Font_11x18, RED, BLACK);
-        status = 0; // Mark failure
+        status = 0; // Fail flag
     }
     
-    // --- GNSS SETUP ---
-    GNSS_Init(&gnss, &hi2c2); 
-    GNSS_PowerControl(&gnss, true);
+    // GNSS SETUP
+    GNSS_Init(&gnss, &hi2c2); //I2C initialization
+    GNSS_PowerControl(&gnss, true); //Turn on GNSS module
     
     // GNSS sensor handshake
-    if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) {
-        GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS);
+    if (HAL_I2C_IsDeviceReady(&hi2c2, GNSS_DEVICE_ADDR, 1, 20000) == HAL_OK) { //GNSS is connected and recognized
+				GNSS_SetMode(&gnss, eGPS_BeiDou_GLONASS); //GLONASS: receiving data from ALL satellites
+				
+				//Serial confirmation
         sprintf(message, "GNSS Ready");
         print_msg(message);
+			
+				//Screen confirmation
         ILI9486_DrawString(10, 70, "GNSS Ready", Font_11x18, GREEN, BLACK);
-    } else {
+    } else { //Something wrong with GNSS connection
+				//Serial error message
         sprintf(message, "Error in GNSS connection");
         print_msg(message);
+			
+				//Screen error message
         ILI9486_DrawString(10, 70, "Error in GNSS connection", Font_11x18, RED, BLACK);
-        status = 0; // Mark failure
+        status = 0; // Fail flag
     }
-
     HAL_Delay(1000);
-		
-
     return status;
 }
 
+/**
+ * @brief  Gets GNSS data using DFRobot GNSS library
+ * @param currentData - all data received from the GNSS module: latitude, longitude, satellite count, altitude, speed, course
+ */
 void GNSS_get_data() {
-	
-	// get data fromt gnss
+	// Gets data from GNSS module
 	currentData = GNSS_GetAllData(&gnss);
 	
-	// print number of sats visible
+	// Prints number of sats visible in the serial monitor
 	sprintf(message, "\nSats visible: %d\r\n", currentData.satellites);
 	print_msg(message);
 	
-	// print coordinates
+	// Prints current coordinates in the serial monitor
 	sprintf(message, "Lat: %f %c, Lon: %f %c\r\n", 
 					currentData.latitude, currentData.latDirection, 
 					currentData.longitude, currentData.lonDirection);
 	print_msg(message);
 				
-	// put the gnss data into lora_payload
+	// Puts coordinates and direction into data payload
 	snprintf(lora_payload, sizeof(lora_payload), // snprintf specifies size
 						"\nLAT:%.6f%c,LON:%.6f%c",
-						currentData.latitude,
-						currentData.latDirection,
-						currentData.longitude,
-						currentData.lonDirection);
+						currentData.latitude, 
+						currentData.latDirection, //Indicates Northern or Southern hemisphere
+						currentData.longitude, 
+						currentData.lonDirection); //Indicates Eastern or Western hemisphere
 }
 
+/**
+ * @brief  TRANSMIT data with LoRa module
+ */
 void LoRa_Transmit() {
-	//START TRANSMITTING
+	//Successful transmission
 	if(LoRa_transmit(&myLoRa, (uint8_t*)lora_payload, strlen(lora_payload), 100) == 1) {
-		print_msg("\nTransmission Successful!\r");
+		print_msg("\nTransmission Successful!\r"); //Serial monitor confirmation
 	} else {
-		print_msg("\nTransmission Failed.\r");
+		print_msg("\nTransmission Failed.\r"); //Serial monitor error message
 	}
 }
 
+/**
+ * @brief  RECEIVES data with LoRa module, waits up to 2 seconds to receive a packet
+ * @return 1 if packet was received, 0 if no packets were received
+ */
 uint8_t LoRa_Recieve() {
+		//Turn on receive mode
     LoRa_startReceiving(&myLoRa);
     
-    // Poll for RxDone flag (bit 6) with a timeout
+		//Sets timer start time and timer length
     uint32_t startTime = HAL_GetTick();
-    uint32_t timeout_ms = 2000; // wait up to 2 seconds
+    uint32_t timeout_ms = 2000; // wait up to 2 seconds to receive a packet
     
+		//Keep waiting for a receive until timer runs out
     while (HAL_GetTick() - startTime < timeout_ms) {
+				//Polls LoRa receive IRQ flag
         uint8_t irqFlags = LoRa_read(&myLoRa, RegIrqFlags);
         
-        if (irqFlags & 0x40) { // RxDone flag set
-            // Check for CRC error (bit 5)
+        if (irqFlags & 0x40) { //Receive flag set
+            //Checks for CRC error (bit 5)
             if (irqFlags & 0x20) {
-                LoRa_write(&myLoRa, RegIrqFlags, 0xFF); // clear flags
-                print_msg("CRC Error!\r\n");
+                LoRa_write(&myLoRa, RegIrqFlags, 0xFF); //Clears receive flag to keep trying
+                print_msg("CRC Error!\r\n"); //Serial error message
                 return 0;
             }
-            // Now call receive to read the data
+            // No error, read received data
             packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
             
-            if (packet_size > 0) {
-                memcpy(msg_buffer, received_data, packet_size);
-                msg_buffer[packet_size] = '\0';
+            if (packet_size > 0) { // Data packet received
+                memcpy(msg_buffer, received_data, packet_size); // Copies received data to receive message buffer
+                msg_buffer[packet_size] = '\0'; // Null termination
+								
+								//Serial message of received data
                 sprintf(message, "\nReceived: %s\r\n", msg_buffer);
                 print_msg(message);
                 return 1;
@@ -271,39 +303,56 @@ uint8_t LoRa_Recieve() {
         HAL_Delay(10);
     }
     
+		//Timer ran out without receiving anything
     print_msg("RX Timeout\r\n");
     return 0;
 }
 
-static double scale_x = 0;
-static double cos_a, sin_a, cos_lat;
-
-void latlon_to_px(double lon, double lat, int *px, int *py) {
-    if (scale_x == 0) {
-        cos_lat = cos(REF_LAT * M_PI / 180.0);
-        double dx = (-79.386656 - REF_LON) * cos_lat;
-        double dy = 43.670444 - REF_LAT;
-        double angle = atan2(-dy, dx);  // exact angle to make bloor-yonge y=0
-        cos_a = cos(angle);
-        sin_a = sin(angle);
-        double gx = cos_a * dx - sin_a * dy;
-        scale_x = 480.0 / gx;
-    }
-
-    double dx = (lon - REF_LON) * cos_lat;
-    double dy = lat - REF_LAT;
+/**
+ * @brief  Approximates Bloor-Spadina, Bloor-Yonge, College-Spadina, College-Yonge to a rectangle.
+					 Calculates the tilt of the rectangle relative to lon-lat grid and scales lon-lat coordinates
+					 to 480x320 array.
+ */
+void latlon_init(void) {
+    cos_lat = cos(BS_LATITUDE * M_PI / 180.0); //Latitude correction for reference coordinate
+		//Calculating difference in lon, lat between Bloor-Spadina (0,0) and Bloor-Yonge (480, 0)
+    double dx = (BY_LONGITUDE - BS_LONGITUDE) * cos_lat;
+    double dy = BY_LATITUDE - BS_LATITUDE;
+	
+		//Calculating angle tilt of map relative to lon-lat grid
+    double angle = atan2(-dy, dx);
+    cos_a = cos(angle);
+    sin_a = sin(angle);
     double gx = cos_a * dx - sin_a * dy;
-    double gy = sin_a * dx + cos_a * dy;
-    *px = (int)(gx * scale_x);
-    *py = (int)(-gy * scale_x);
+		//Calculates scaling factor using screen width
+    scale = 480 / gx;
 }
 
-void draw_dot(int x, int y, int radius, uint16_t color) {
-    for (int dy = -radius; dy <= radius; dy++)
-        for (int dx = -radius; dx <= radius; dx++)
+/**
+ * @brief  Applies scaling rotational transformation to any input coordinates to map them to display pixels.
+ * @param dx, dy - change in lon, lat from reference coordinate (Bloor-Spadina = (0,0))
+ */
+void latlon_to_px(double lon, double lat, int *px, int *py) {
+    double dx = (lon - BS_LONGITUDE) * cos_lat;
+    double dy = lat - BS_LATITUDE;
+    double gx = cos_a * dx - sin_a * dy;
+    double gy = sin_a * dx + cos_a * dy;
+    *px = (int)(gx * scale);
+    *py = (int)(-gy * scale);
+}
+
+/**
+ * @brief  Draws a square of a certain color and size at given coordinates
+ */
+void draw_dot(int x, int y, int size, uint16_t color) {
+    for (int dy = -size; dy <= size; dy++)
+        for (int dx = -size; dx <= size; dx++)
             ILI9486_DrawPixel(x + dx, y + dy - 10, color);
 }
 
+/**
+ * @brief  Marks certain landmarks on the map using the draw_dot function
+ */
 void draw_landmarks() {
     int x, y;
     for (int i = 0; i < num_landmarks; i++) {
@@ -311,6 +360,8 @@ void draw_landmarks() {
         draw_dot(x, y, 2, 0xF800);
     }
 }
+
+
 // Track the last drawn position
 static int last_my_x = -1;
 static int last_my_y = -1;
