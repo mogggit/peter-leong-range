@@ -88,7 +88,8 @@ typedef enum {
 	DRAW_SATS,
 	DRAW_FAILED,
 	DRAW_RSSI,
-	PLOT,
+	PLOT_SELF,
+	PLOT_OTHER
 } SystemState;
 
 
@@ -104,6 +105,7 @@ char msg_buffer[65];
 char* send_data;
 	
 sGNSS_Data_t currentData;
+sGNSS_Data_t otherData;
 char lora_payload[64];
 
 char string_buffer[100];
@@ -137,7 +139,8 @@ void Log_System_Status(SystemState state, int sats) {
         case DRAW_SATS:    strcpy(state_name, "DRAW_SATS"); break;
         case DRAW_FAILED:  strcpy(state_name, "DRAW_FAILED"); break;
         case DRAW_RSSI:    strcpy(state_name, "DRAW_RSSI"); break;
-        case PLOT:         strcpy(state_name, "PLOT"); break;
+        case PLOT_SELF:         strcpy(state_name, "PLOT_SELF"); break;
+				case PLOT_OTHER:         strcpy(state_name, "PLOT_OTHER"); break;
         default:           strcpy(state_name, "UNKNOWN"); break;
     }
 
@@ -223,12 +226,12 @@ void GNSS_get_data() {
 	print_msg(message);
 				
 	// put the gnss data into lora_payload
-	snprintf(lora_payload, sizeof(lora_payload), // snprintf specifies size
-						"\nLAT:%.6f%c,LON:%.6f%c",
-						currentData.latitude,
-						currentData.latDirection,
-						currentData.longitude,
-						currentData.lonDirection);
+	snprintf(lora_payload, sizeof(lora_payload), "%.6lf%c,%.6lf%c,%d",
+    currentData.latitude,
+    currentData.latDirection,
+    currentData.longitude,
+    currentData.lonDirection,
+    currentData.satellites);
 }
 
 void LoRa_Transmit() {
@@ -265,6 +268,7 @@ uint8_t LoRa_Recieve() {
                 msg_buffer[packet_size] = '\0';
                 sprintf(message, "\nReceived: %s\r\n", msg_buffer);
                 print_msg(message);
+							
                 return 1;
             }
         }
@@ -312,40 +316,64 @@ void draw_landmarks() {
     }
 }
 // Track the last drawn position
-static int last_my_x = -1;
-static int last_my_y = -1;
+static int last_my_x = -1,  last_my_y = -1;
+static int last_other_x = -1, last_other_y = -1;
 
-void erase_my_position() {
-    if (last_my_x < 0 || last_my_y < 0) return; // nothing drawn yet
+void draw_position(sGNSS_Data_t *data, int *last_x, int *last_y, int radius, uint16_t color) {
 
-    int radius = 2;
-    for (int dy = -radius; dy <= radius; dy++) {
-        for (int dx = -radius; dx <= radius; dx++) {
-            int px = last_my_x + dx;
-            int py = last_my_y + dy;
-            // Bounds check
-            if (px < 0 || px >= CAMPUS_MAP_WIDTH || py < 0 || py >= CAMPUS_MAP_HEIGHT) continue;
-            // Read the original pixel from the campus map image data
-            uint16_t color = CAMPUS_MAP[py * CAMPUS_MAP_WIDTH + px];
-            ILI9486_DrawPixel(px, py, color);
+    // Erase previous
+    if (*last_x >= 0 && *last_y >= 0) {
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                int px = *last_x + dx;
+                int py = *last_y + dy - 10;
+                if (px < 0 || px >= CAMPUS_MAP_WIDTH || py < 0 || py >= CAMPUS_MAP_HEIGHT) continue;
+                ILI9486_DrawPixel(px, py, CAMPUS_MAP[py * CAMPUS_MAP_WIDTH + px]);
+            }
         }
     }
-}
-	
-void draw_my_position() {
-    erase_my_position(); // erase old position first
 
     int x, y;
-    latlon_to_px(currentData.longitude, currentData.latitude, &x, &y);
-    draw_dot(x, y, 2, 0x07E0); // green so it's distinct from red landmarks
+    double lat = data->latitude;
+    double lon = data->longitude;
+    if (data->latDirection == 'S') lat = -lat;
+    if (data->lonDirection == 'W') lon = -lon;
 
-    // Save for next erase
-    last_my_x = x;
-    last_my_y = y;
+    latlon_to_px(lon, lat, &x, &y);
+
+    if (x < 0 || x >= 480 || y < 0 || y >= 320) {
+        sprintf(message, "Position out of bounds: x=%d y=%d\r\n", x, y);
+        print_msg(message);
+        return;
+    }
+
+    draw_dot(x, y, radius, color);
+    *last_x = x;
+    *last_y = y;
+}
+
+sGNSS_Data_t parse_lora_payload(char *payload) {
+    sGNSS_Data_t data = {0};
+
+    if (sscanf(payload, "%lf%c,%lf%c,%hhu",
+               &data.latitude,  &data.latDirection,
+               &data.longitude, &data.lonDirection,
+               &data.satellites) != 5) {
+        sprintf(message, "Parse failed: %s\r\n", payload);
+        print_msg(message);
+        return data;
+    }
+
+    sprintf(message, "Parsed - Lat: %f %c, Lon: %f %c, Sats: %d\r\n",
+            data.latitude, data.latDirection,
+            data.longitude, data.lonDirection,
+            data.satellites);
+    print_msg(message);
+
+    return data;
 }
 
 /* USER CODE END 0 */
-
 /**
   * @brief  The application entry point.
   * @retval int
@@ -412,8 +440,6 @@ int main(void)
 				GNSS_get_data();
 				LoRa_Transmit();
 				dataRecieved = LoRa_Recieve();
-				dataRecieved = 1; // FOR TESTING REMOVE WHEN DONE
-				// TODO: DIFFERENT STATES FOR DRAW MYSELF AND DRAW OTHER
 				
 				if (HAL_GetTick() - refreshedTime > SCREEN_REFRESH_PERIOD) {
 					refreshedTime = HAL_GetTick();
@@ -425,7 +451,7 @@ int main(void)
 			case DRAW_SATS: {
 				
 				sprintf(string_buffer, "Sats Visible: %d", currentData.satellites);
-				ILI9486_FillRect(10, 10, 170, 20, WHITE); // ERASE 
+				ILI9486_FillRect(10, 10, 200, 20, WHITE); // ERASE 
 				ILI9486_DrawString(10, 10, string_buffer, Font_11x18, RED, WHITE); // DRAW
 				
 				sprintf(message, "\n DRAW - Sats visible: %d\r\n", currentData.satellites);
@@ -440,13 +466,17 @@ int main(void)
 			}
 			
 			case DRAW_FAILED: {
-				ILI9486_FillRect(200, 10, 170, 20, WHITE); // ERASE 
+				ILI9486_FillRect(200, 10, 200, 20, WHITE); // ERASE 
 				ILI9486_DrawString(200, 10, "Recieve Failed", Font_11x18, RED, WHITE);
 				
 				sprintf(message, "\nRecieved Failed\r\n");
 				print_msg(message);
 				
-				currentState = TX_RX;
+				if (currentData.satellites >= 3) {
+					currentState = PLOT_SELF;
+				} else {
+					currentState = TX_RX;
+				}
 				break;
 			}
 			
@@ -456,23 +486,30 @@ int main(void)
 				ILI9486_FillRect(200, 10, 170, 20, WHITE); // ERASE 
 				ILI9486_DrawString(200, 10, string_buffer, Font_11x18, RED, WHITE);
 				
-				sprintf(message, "RSSI: something \r\n" ); // TODO
-				print_msg(message);
-				
 				if (currentData.satellites >= 3) { // AND THE OTHER ALSO SAT >= 3
-					currentState = PLOT;
+					currentState = PLOT_SELF;
 				} else {
 					currentState = TX_RX;
 				}
 				break;
 			}
 			
-			case PLOT: {
-				draw_my_position();
+			case PLOT_SELF: {
+				draw_position(&currentData, &last_my_x, &last_my_y, 8, BLUE);
+				otherData = parse_lora_payload(msg_buffer);
 				
+				if (otherData.satellites >= 3) {
+					currentState = PLOT_OTHER;
+				} else {
+					currentState = TX_RX;
+				}
+				break;
+			}
+			
+			case PLOT_OTHER: {
+				draw_position(&currentData, &last_other_x, &last_other_y, 8, GREEN);
 				currentState = TX_RX;
 			}
-			break;
 		}
 		Log_System_Status(currentState, currentData.satellites);
 		HAL_Delay(1);
