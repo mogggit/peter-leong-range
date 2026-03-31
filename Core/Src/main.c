@@ -45,7 +45,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 #define GRID_STEP 40
-#define SCREEN_REFRESH_PERIOD 1000
+#define SCREEN_REFRESH_PERIOD 500
 #define BS_LONGITUDE -79.4042 //Longitude of Bloor-Spadina
 #define BS_LATITUDE  43.666756 //Latitude of Bloor-Spadina
 #define BY_LONGITUDE -79.386656 //Longitude of Bloor-Yonge
@@ -408,15 +408,17 @@ void draw_position(sGNSS_Data_t *data, int *last_x, int *last_y, int radius, uin
 
 sGNSS_Data_t parse_lora_payload(char *payload) {
     sGNSS_Data_t data = {0};
+    int sats_tmp = 0;
 
-    if (sscanf(payload, "%lf%c,%lf%c,%hhu",
+    if (sscanf(payload, "%lf%c,%lf%c,%d",
                &data.latitude,  &data.latDirection,
                &data.longitude, &data.lonDirection,
-               &data.satellites) != 5) {
-        sprintf(message, "Parse failed: %s\r\n", payload);
+               &sats_tmp) != 5) {
+        sprintf(message, "Parse failed: [%s]\r\n", payload);
         print_msg(message);
         return data;
     }
+    data.satellites = (uint8_t)sats_tmp;
 
     sprintf(message, "Parsed - Lat: %f %c, Lon: %f %c, Sats: %d\r\n",
             data.latitude, data.latDirection,
@@ -425,6 +427,60 @@ sGNSS_Data_t parse_lora_payload(char *payload) {
     print_msg(message);
 
     return data;
+}
+
+void GNSS_simulate_walk(uint32_t step_ms, uint32_t num_steps) {
+
+    static const double START_LAT =  43.663639;
+    static const double START_LON = -79.390528;
+    static const double END_LAT   =  43.664860;
+    static const double END_LON   = -79.384875;
+
+    static uint32_t current_step = 0;
+    static uint32_t last_step_time = 0;
+    static uint8_t forward = 1;          // 1 = walking to end, 0 = walking back
+
+    uint32_t now = HAL_GetTick();
+
+    // Advance one step if enough time has elapsed
+    if (now - last_step_time >= step_ms) {
+        last_step_time = now;
+
+        if (forward) {
+            current_step++;
+            if (current_step >= num_steps) {
+                current_step = num_steps;  // clamp at end
+                forward = 0;               // reverse direction
+            }
+        } else {
+            if (current_step > 0) {
+                current_step--;
+            } else {
+                forward = 1;               // hit start, go forward again
+            }
+        }
+    }
+
+    // t in [0.0, 1.0]
+    double t = (double)current_step / (double)num_steps;
+
+    // Interpolate
+    double sim_lat = START_LAT + t * (END_LAT - START_LAT);
+    double sim_lon = START_LON + t * (END_LON - START_LON);
+
+    // Pack into currentData
+    currentData.latitude     = sim_lat;
+    currentData.latDirection = 'N';
+    currentData.longitude    = -sim_lon;
+    currentData.lonDirection = 'W';
+    currentData.satellites   = 6;
+
+    snprintf(lora_payload, sizeof(lora_payload), "%.6lf%c,%.6lf%c,%d",
+             currentData.latitude,  currentData.latDirection,
+             currentData.longitude, currentData.lonDirection,
+             currentData.satellites);
+
+    sprintf(message, "Sats visible: %d\r\n", currentData.satellites);
 }
 
 /* USER CODE END 0 */
@@ -493,6 +549,7 @@ int main(void)
 			
 			case TX_RX: {
 				GNSS_get_data();
+				// GNSS_simulate_walk(100, 10);
 				LoRa_Transmit();
 				dataRecieved = LoRa_Recieve();
 				
@@ -527,47 +584,48 @@ int main(void)
 				sprintf(message, "\nRecieved Failed\r\n");
 				print_msg(message);
 				
+				// Plot self if we have a fix, regardless of other device
 				if (currentData.satellites >= 3) {
-					currentState = PLOT_SELF;
+						currentState = PLOT_SELF;
 				} else {
-					currentState = TX_RX;
-				}
+						currentState = TX_RX;
+				}	
 				break;
 			}
-			
+
 			case DRAW_RSSI: {
 				int32_t rssi = LoRa_getRSSI(&myLoRa);
 				sprintf(string_buffer, "RSSI: %d dB", rssi);
 				ILI9486_FillRect(200, 10, 170, 20, WHITE); // ERASE 
 				ILI9486_DrawString(200, 10, string_buffer, Font_11x18, RED, WHITE);
-				
-				if (currentData.satellites >= 3) { // AND THE OTHER ALSO SAT >= 3
-					currentState = PLOT_SELF;
-				} else {
-					currentState = TX_RX;
-				}
+					
+				// Always try to plot — PLOT_SELF and PLOT_OTHER each guard themselves
+				currentState = PLOT_SELF;
 				break;
 			}
-			
+
 			case PLOT_SELF: {
-				draw_position(&currentData, &last_my_x, &last_my_y, 8, BLUE);
-				otherData = parse_lora_payload(msg_buffer);
-				
-				if (otherData.satellites >= 3) {
-					currentState = PLOT_OTHER;
-				} else {
-					currentState = TX_RX;
+				if (currentData.satellites >= 3) {
+					draw_position(&currentData, &last_my_x, &last_my_y, 8, BLUE);
 				}
+					
+				if (dataRecieved) {
+					otherData = parse_lora_payload(msg_buffer);
+				}
+				
+				// Always proceed to PLOT_OTHER — let it decide whether to draw
+				currentState = PLOT_OTHER;
 				break;
 			}
-			
+
 			case PLOT_OTHER: {
-				draw_position(&otherData, &last_other_x, &last_other_y, 8, GREEN);
+				if (otherData.satellites >= 3) {
+					draw_position(&otherData, &last_other_x, &last_other_y, 8, GREEN);
+				}
 				currentState = TX_RX;
+				break;  // <-- this was also missing a break!
 			}
 		}
-		Log_System_Status(currentState, currentData.satellites);
-		HAL_Delay(1);
 			
     /* USER CODE END WHILE */
 
