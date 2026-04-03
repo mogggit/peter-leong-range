@@ -51,6 +51,7 @@ GNSS
 
 3.5" LCD Display
 - [How to use The TFT LCD Touch Screen Module for Arduino](https://learn.carobot.ca/guide/touch-screen-module)
+- [TFT LCD Display Library for Arduino to work with DIYables TFT LCD Shield - DIYables_TFT_Shield](https://github.com/DIYables/DIYables_TFT_Shield)
 
 STM32
 - [ST-Nucleo-F446ZE Pinout](https://os.mbed.com/platforms/ST-Nucleo-F446ZE/)
