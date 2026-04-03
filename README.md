@@ -47,7 +47,7 @@ Lora
 
 GNSS
 - [DFRobot GNSS Guide](https://wiki.dfrobot.com/dfr1103/)
-- [DFRobot Repo](https://github.com/DFRobot/DFRobot_GNSS/tree/master)
+- [DFRobot Repo]([https://github.com/DFRobot/DFRobot_GNSS/tree/master](https://github.com/DFRobot/DFRobot_GNSSAndRTC))
 
 3.5" LCD Display
 - [How to use The TFT LCD Touch Screen Module for Arduino](https://learn.carobot.ca/guide/touch-screen-module)
